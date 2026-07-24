@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="FinacleDevAssist.vcxproj" Id="9d04dbd5-e12e-44e0-a683-6f43f21d533b" />
+</Solution>
