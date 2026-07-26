@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AutoCompletion>
+	<Keywords>
+		<Keyword>START</Keyword>
+		<Keyword>END</Keyword>
+		<Keyword>TRACE ON</Keyword>
+		<Keyword>TRACE OFF</Keyword>
+		<Keyword>EXITSCRIPT</Keyword>
+		<Keyword>IF</Keyword>
+		<Keyword>THEN</Keyword>
+		<Keyword>ELSE</Keyword>
+		<Keyword>ENDIF</Keyword>
+		<Keyword>WHILE</Keyword>
+		<Keyword>DO</Keyword>
+		<Keyword>GOTO</Keyword>
+		<Keyword>GOSUB</Keyword>
+		<Keyword>FUNCTION</Keyword>
+		<Keyword>ENDFUNCTION</Keyword>
+	</Keywords>
+	<Functions>
+		<Function name="SYSTEM()">
+			<ParamInputs>
+				<ParamInput>COMMAND!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="TRIM$()">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="CINT()">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="MID$(,,)">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+				<ParamInput>VALUE!NUMBER</ParamInput>
+				<ParamInput>VALUE!NUMBER</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="CLASSEXISTS(,)">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+				<ParamInput>VALUE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+	</Functions>
+	<UserHooks>
+		<!-- Database Hooks -->
+		<Hook name="urhk_dbSelectWithBind()">
+			<ParamInputs>
+				<ParamInput>queryStringVariable</ParamInput>
+			</ParamInputs>
+			<Inputs>
+				<Input>BANCS.INPARAM.BINDVARS</Input>
+			</Inputs>
+			<Outputs>
+				<Output>BANCS.OUTPARAM.*</Output>
+			</Outputs>
+		</Hook>
+		<Hook name="urhk_dbSQLWithBind()">
+			<ParamInputs>
+				<ParamInput>queryStringVariable</ParamInput>
+			</ParamInputs>
+			<Inputs>
+				<Input>BANCS.INPARAM.BINDVARS</Input>
+			</Inputs>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_dbCursorOpenwithBind()">
+			<ParamInputs>
+				<ParamInput>queryStringVariable</ParamInput>
+			</ParamInputs>
+			<Inputs>
+				<Input>BANCS.INPARAM.BINDVARS</Input>
+			</Inputs>
+			<Outputs>
+				<Output>BANCS.OUTPARAM.DB_CURSOR_NUMBER</Output>
+			</Outputs>
+		</Hook>
+		<Hook name="urhk_dbCursorFetch()">
+			<ParamInputs>
+				<ParamInput>cursorNumber</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs>
+				<Output>BANCS.OUTPARAM.*</Output>
+			</Outputs>
+		</Hook>
+		<Hook name="urhk_dbCursorClose()">
+			<ParamInputs>
+				<ParamInput>cursorNumber</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<!-- Repository / Field Hooks -->
+		<Hook name="urhk_SetUrhkInp(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>fieldValueSet</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_SetUrhkOut(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>fieldValueGet</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_GetUrhkOut(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>fieldValueGet</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_GetUrhkNum(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>linkedListNameSizeGet</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_SetOrbOut(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>field|ValueSet</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_CopyOutToIn(&quot;&quot;)">
+			<ParamInputs/>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<!-- Service Hooks -->
+		<Hook name="urhk_ExecSrv(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>srvNameAndCondition</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_ExecSrvNoCommit(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>srvNameAndCondition</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_SRV_GetVal(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>getValueFromSRV</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs>
+				<Output>BANCS.OUTPARAM.srvValue</Output>
+			</Outputs>
+		</Hook>
+		<Hook name="urhk_SRV_SetVal(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>setValueFromSRV</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_SRV_SetErr(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>errValue</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<!-- Account Hooks -->
+		<Hook name="urhk_valAcctNumber()">
+			<ParamInputs>
+				<ParamInput>acctNum</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_getAcctDetailsInRepository()">
+			<ParamInputs>
+				<ParamInput>acctNum</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_B2k_BacidToAcctId()">
+			<ParamInputs>
+				<ParamInput>bacid|crncyCode|solId</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs>
+				<Output>BANCS.OUTPARAM.AcctId</Output>
+			</Outputs>
+		</Hook>
+		<!-- Environment Hooks -->
+		<Hook name="urhk_getEnv(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>envName</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_putEnv(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>envName</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<!-- B2K Utility Hooks -->
+		<Hook name="urhk_B2k_isStringNumeric()">
+			<ParamInputs>
+				<ParamInput>stringToBeChecked</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_B2k_PrintRepos(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>repoName</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_B2k_PID(&quot;&quot;)">
+			<ParamInputs/>
+			<Inputs/>
+			<Outputs>
+				<Output>BANCS.OUTPARAM.PID</Output>
+			</Outputs>
+		</Hook>
+		<Hook name="urhk_B2k_DateDiff(&quot;&quot;)">
+			<ParamInputs/>
+			<Inputs>
+				<Input>BANCS.INPUT.date1</Input>
+				<Input>BANCS.INPUT.date2</Input>
+			</Inputs>
+			<Outputs>
+				<Output>BANCS.OUTPUT.dateDiff</Output>
+			</Outputs>
+		</Hook>
+		<Hook name="urhk_B2k_ValDate()">
+			<ParamInputs>
+				<ParamInput>date</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs>
+				<Output>BANCS.OUTPUT.dateDiff</Output>
+			</Outputs>
+		</Hook>
+		<Hook name="urhk_B2k_ValidateAmtWithCrncy()">
+			<ParamInputs>
+				<ParamInput>amtWithCrncy</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_B2k_getDateDiffFromBODDate()">
+			<ParamInputs>
+				<ParamInput>date</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<!-- ONS Hooks -->
+		<Hook name="urhk_ParseONSCustData()">
+			<ParamInputs>
+				<ParamInput>ONSData</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs>
+				<Output>ONS.CUSTOM.*</Output>
+			</Outputs>
+		</Hook>
+		<!-- Audit Hooks -->
+		<Hook name="urhk_InitAudit(&quot;&quot;)">
+			<ParamInputs/>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+		<Hook name="urhk_Audit(&quot;&quot;)">
+			<ParamInputs/>
+			<Inputs>
+				<Input>AUDIT.KEY.TABLEKEY</Input>
+				<Input>BANCS.INPARAM.TABLENAME</Input>
+				<Input>BANCS.INPARAM.ACCTNUM</Input>
+				<Input>BANCS.INPARAM.AUDITSOLID</Input>
+				<Input>BANCS.INPARAM.GLSUBHEADCODE</Input>
+				<Input>BANCS.INPARAM.OPERCODE</Input>
+				<Input>BANCS.INPARAM.excpnFlg</Input>
+				<Input>BANCS.INPARAM.AUTOVERIFY</Input>
+				<Input>BANCS.INPARAM.REFNUM</Input>
+				<Input>BANCS.INPARAM.MOPID</Input>
+			</Inputs>
+			<Outputs>
+				<Output>BANCS.OUTPARAM.successOrFailure</Output>
+			</Outputs>
+		</Hook>
+		<!-- File Hooks -->
+		<Hook name="urhk_getFileLocation(&quot;&quot;)">
+			<ParamInputs>
+				<ParamInput>fileExt|fileName</ParamInput>
+			</ParamInputs>
+			<Inputs/>
+			<Outputs/>
+		</Hook>
+	</UserHooks>
+</AutoCompletion>
