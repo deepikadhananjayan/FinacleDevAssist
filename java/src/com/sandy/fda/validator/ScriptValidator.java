@@ -2,6 +2,7 @@ package com.sandy.fda.validator;
 
 import java.util.List;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.sandy.fda.models.Issue;
 import com.sandy.fda.models.Line;
@@ -41,12 +42,34 @@ public class ScriptValidator {
     private JsonObject convertToJsonResponse(ScriptInfo scriptInfo) {
         
         JsonObject response = new JsonObject();
-
+        JsonArray errors = new JsonArray();
+        JsonArray warnings = new JsonArray();
+        
         response.addProperty("STATUS", "SUCCESS");
-
         for (Issue issue : scriptInfo.getIssues()) {
-            System.out.println(issue);
+            
+            List<Line> lines = issue.getLines();
+            int lineNo = (lines == null || lines.size() > 1) ? -1 : lines.get(0).getLineNo();
+            String message = issue.getIssueMessage();
+            
+            JsonObject issueObj = new JsonObject();
+            issueObj.addProperty("message", message);
+            issueObj.addProperty("line", lineNo);
+
+            switch (issue.getType()) {
+                case ERROR:
+                    errors.add(issueObj);
+                    break;
+                case WARNING:
+                    warnings.add(issueObj);
+                    break;
+            }
         }
+
+        response.add("errors", errors);
+        response.add("warnings", warnings);
+        response.addProperty("total_errors", errors.size());
+        response.addProperty("total_warnings", warnings.size());
 
         return response;
     }
