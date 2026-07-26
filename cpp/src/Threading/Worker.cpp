@@ -3,6 +3,7 @@
 #include "../Core/FDAApplication.h"
 #include "../Communication/FDAClient.h"
 #include "../Communication/Handlers/TokenHandler.h"
+#include "../Communication/Handlers/ValidationHandler.h"
 #include "../Configuration/FDAConfig.h"
 #include "../Utils/Logger.h"
 
@@ -12,6 +13,7 @@ Worker::Worker()
     javaProcess = std::make_unique<JavaProcess>();
     client = std::make_unique<FDAClient>();
     tokenHandler = std::make_unique<TokenHandler>(client.get());
+    validationHandler = std::make_unique<ValidationHandler>(client.get());
 }
 
 Worker::~Worker() = default;
@@ -91,6 +93,16 @@ void Worker::run()
         case TaskType::VALIDATE_SCRIPT:
         {
             Logger::info("[WORKER] VALIDATE_SCRIPT task");
+
+            try
+            {
+                validationHandler->validateScript(task.data);
+            }
+            catch (const std::exception& e)
+            {
+                Logger::error("[WORKER] Exception : " + std::string(e.what()));
+            }
+
             break;
         }
 

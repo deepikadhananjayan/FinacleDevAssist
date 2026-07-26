@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 enum class TaskType
 {
     START_JAVA,
@@ -13,4 +15,5 @@ enum class TaskType
 struct Task
 {
     TaskType type;
+    std::string data;
 };

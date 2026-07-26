@@ -8,4 +8,5 @@ public:
     explicit TokenHandler(FDAClient* client);
 
     void getTokens();
+    void parse(const std::string& response);
 };   

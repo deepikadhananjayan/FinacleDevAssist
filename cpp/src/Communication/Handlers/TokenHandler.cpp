@@ -16,6 +16,7 @@ void TokenHandler::getTokens()
     Logger::info("[TOKEN] Preparing request");
 
     json request;
+    
     request["type"] = "GET_KEYWORDS_AND_USERHOOKS";
 
     std::string response;
@@ -28,6 +29,12 @@ void TokenHandler::getTokens()
 
     Logger::info("[TOKEN] Response received");
 
+    parse(response);
+
+}
+
+void TokenHandler::parse(const std::string& response)
+{
     try
     {
         json result = json::parse(response);
@@ -54,7 +61,7 @@ void TokenHandler::getTokens()
         TokenStore::setFunctions(functions);
         TokenStore::setUserHooks(userHooks);
 
-        Logger::info("[TOKEN] Stored successfully");
+        Logger::info("[TOKEN] Parsed & Stored successfully");
     }
     catch (const std::exception& e)
     {

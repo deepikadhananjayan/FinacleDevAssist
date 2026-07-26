@@ -64,8 +64,11 @@ void commandMenuInit()
     //            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
     //            bool check0nInit                // optional. Make this menu item be checked visually
     //            );
-    setCommand(0, TEXT("Initialize"), initializeFDA, NULL, false);
-    setCommand(4, TEXT("Shutdown"), shutdownFDA, NULL, false);
+    setCommand(0, TEXT("Initialize"), initializeFDA, NULL, true);
+    setCommand(1, TEXT("Validate Script"), validateScript, NULL, true);
+    setCommand(2, TEXT("Format Script"), formatScript, NULL, false);
+    setCommand(3, TEXT("Shutdown"), shutdownFDA, NULL, true);
+    setCommand(4, TEXT("About"), aboutFDA, NULL, true);
 }
 
 //
@@ -126,7 +129,22 @@ void initializeFDA()
     FDAApplication::initialize(pluginHandle);
 }
 
+void validateScript() 
+{
+    FDAApplication::handleValidateScript();
+}
+
+void formatScript()
+{
+    FDAApplication::handleFormatScript();
+}
+
 void shutdownFDA()
 {
     FDAApplication::shutdown();
+}
+
+void aboutFDA()
+{
+    FDAApplication::aboutPlugin();
 }

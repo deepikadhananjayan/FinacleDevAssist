@@ -40,7 +40,6 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT("Finacle Dev Assist");
 //
 const int nbFunc = 5;
 
-
 //
 // Initialization of your plugin data
 // It will be called while plugin loading
@@ -76,6 +75,9 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 //void helloDlg();
 
 void initializeFDA();
+void validateScript();
+void formatScript();
 void shutdownFDA();
+void aboutFDA();
 
 #endif //PLUGINDEFINITION_H

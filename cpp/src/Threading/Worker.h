@@ -10,6 +10,7 @@
 class JavaProcess;
 class FDAClient;
 class TokenHandler;
+class ValidationHandler;
 
 class Worker
 {
@@ -31,4 +32,5 @@ private:
     std::unique_ptr<JavaProcess> javaProcess;
     std::unique_ptr<FDAClient> client;
     std::unique_ptr<TokenHandler> tokenHandler;
+    std::unique_ptr<ValidationHandler> validationHandler;
 };

@@ -30,6 +30,7 @@
     <ClInclude Include="..\src\Communication\FDAClient.h" />
     <ClInclude Include="..\src\Communication\Handlers\RequestHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\TokenHandler.h" />
+    <ClInclude Include="..\src\Communication\Handlers\ValidationHandler.h" />
     <ClInclude Include="..\src\Configuration\FDAConfig.h" />
     <ClInclude Include="..\src\Core\FDAApplication.h" />
     <ClInclude Include="..\src\Core\FDAApplicationState.h" />
@@ -40,10 +41,13 @@
     <ClInclude Include="..\src\DockingFeature\GoToLineDlg.h" />
     <ClInclude Include="..\src\DockingFeature\resource.h" />
     <ClInclude Include="..\src\DockingFeature\StaticDialog.h" />
+    <ClInclude Include="..\src\DockingFeature\ValidationPanel.h" />
     <ClInclude Include="..\src\DockingFeature\Window.h" />
-    <ClInclude Include="..\src\Editor\AutoCompleteManager.h" />
-    <ClInclude Include="..\src\Editor\ScintillaHelper.h" />
+    <ClInclude Include="..\src\Features\AutoCompleteManager.h" />
+    <ClInclude Include="..\src\Features\ScintillaHelper.h" />
     <ClInclude Include="..\src\menuCmdID.h" />
+    <ClInclude Include="..\src\Models\Issue.h" />
+    <ClInclude Include="..\src\Models\ValidationResult.h" />
     <ClInclude Include="..\src\Notepad_plus_msgs.h" />
     <ClInclude Include="..\src\PluginDefinition.h" />
     <ClInclude Include="..\src\PluginInterface.h" />
@@ -59,13 +63,15 @@
   <ItemGroup>
     <ClCompile Include="..\src\Communication\FDAClient.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\TokenHandler.cpp" />
+    <ClCompile Include="..\src\Communication\Handlers\ValidationHandler.cpp" />
     <ClCompile Include="..\src\Configuration\FDAConfig.cpp" />
     <ClCompile Include="..\src\Core\FDAApplication.cpp" />
     <ClCompile Include="..\src\Core\TokenStore.cpp" />
     <ClCompile Include="..\src\DockingFeature\GoToLineDlg.cpp" />
     <ClCompile Include="..\src\DockingFeature\StaticDialog.cpp" />
-    <ClCompile Include="..\src\Editor\AutoCompleteManager.cpp" />
-    <ClCompile Include="..\src\Editor\ScintillaHelper.cpp" />
+    <ClCompile Include="..\src\DockingFeature\ValidationPanel.cpp" />
+    <ClCompile Include="..\src\Features\AutoCompleteManager.cpp" />
+    <ClCompile Include="..\src\Features\ScintillaHelper.cpp" />
     <ClCompile Include="..\src\FinacleDevAssist.cpp" />
     <ClCompile Include="..\src\PluginDefinition.cpp" />
     <ClCompile Include="..\src\Process\JavaProcess.cpp" />
