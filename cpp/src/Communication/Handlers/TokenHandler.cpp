@@ -39,6 +39,19 @@ void TokenHandler::parse(const std::string& response)
     {
         json result = json::parse(response);
 
+        if (result["STATUS"] != "SUCCESS"){
+
+            MessageBox(
+                NULL,
+                TEXT("Unexpected Error Occured."),
+                TEXT("Finacle Dev Assist"),
+                MB_OK | MB_ICONINFORMATION
+            );
+
+            Logger::error("[TOKEN] " + result["EXCEPTION"]);
+            return;
+        }
+
         std::vector<std::string> keywords;
         for (auto& item : result["keywords"])
         {
@@ -61,7 +74,7 @@ void TokenHandler::parse(const std::string& response)
         TokenStore::setFunctions(functions);
         TokenStore::setUserHooks(userHooks);
 
-        Logger::info("[TOKEN] Parsed & Stored successfully");
+        Logger::info("[TOKEN] Stored successfully");
     }
     catch (const std::exception& e)
     {

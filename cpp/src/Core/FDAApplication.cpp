@@ -112,6 +112,8 @@ void FDAApplication::shutdown()
         return;
     }
 
+    ValidationPanel::hidePanel();
+
     FDAApplication::updateState(FDAApplicationState::STOPPING);
 
     if (worker != nullptr)
@@ -200,14 +202,63 @@ void FDAApplication::handleValidateScript()
     worker->submit({ TaskType::VALIDATE_SCRIPT, filePath });
 }
 
-void FDAApplication::handleFormatScript()
+void FDAApplication::handleBeautifyCode()
 {
-    MessageBox(
-        NULL,
-        TEXT("Format Script Feature is Under Development!."),
-        TEXT("Finacle Dev Assist"),
-        MB_OK | MB_ICONINFORMATION
-    );
+    if (state != FDAApplicationState::READY)
+    {
+        MessageBox(
+            NULL,
+            TEXT("FDA Plugin is not initialized."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONINFORMATION
+        );
+        return;
+    }
+
+    std::string filePath = ScintillaHelper::getCurrentFilePath();
+
+    if (filePath.rfind("-1|", 0) == 0)
+    {
+        std::string errorMessage = filePath.substr(3);
+
+        MessageBoxA(
+            NULL,
+            errorMessage.c_str(),
+            "Finacle Dev Assist",
+            MB_OK | MB_ICONWARNING
+        );
+
+        return;
+    }
+
+    LRESULT isFileModified =
+        ::SendMessage(
+            ScintillaHelper::getCurrentEditor(),
+            SCI_GETMODIFY,
+            0,
+            0
+        );
+
+    if (isFileModified)
+    {
+        MessageBox(
+            NULL,
+            TEXT("Please save the file before beautifing."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONWARNING
+        );
+
+        return;
+    }
+
+    //MessageBox(
+    //    NULL,
+    //    TEXT("Beautify Code Feature is Under Development!."),
+    //    TEXT("Finacle Dev Assist"),
+    //    MB_OK | MB_ICONINFORMATION
+    //);
+
+    worker->submit({ TaskType::BEAUTIFY_CODE, filePath });
 }
 
 void FDAApplication::aboutPlugin()

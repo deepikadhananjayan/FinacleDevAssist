@@ -4,6 +4,7 @@
 #include "../Communication/FDAClient.h"
 #include "../Communication/Handlers/TokenHandler.h"
 #include "../Communication/Handlers/ValidationHandler.h"
+#include "../Communication/Handlers/CodeBeautifierHandler.h"
 #include "../Configuration/FDAConfig.h"
 #include "../Utils/Logger.h"
 
@@ -14,6 +15,7 @@ Worker::Worker()
     client = std::make_unique<FDAClient>();
     tokenHandler = std::make_unique<TokenHandler>(client.get());
     validationHandler = std::make_unique<ValidationHandler>(client.get());
+    codeBeautifierHandler = std::make_unique<CodeBeautifierHandler>(client.get());
 }
 
 Worker::~Worker() = default;
@@ -41,6 +43,7 @@ void Worker::run()
             if (!javaProcess->start())
             {
                 Logger::error("[WORKER] Java start failed");
+                FDAApplication::updateState(FDAApplicationState::NOT_INITIALIZED);
                 break;
             }
 
@@ -53,6 +56,7 @@ void Worker::run()
             if (!FDAConfig::load())
             {
                 Logger::error("[WORKER] Configuration load failed");
+                FDAApplication::updateState(FDAApplicationState::NOT_INITIALIZED);
                 break;
             }
 
@@ -63,6 +67,7 @@ void Worker::run()
             if (!client->connect())
             {
                 Logger::error("[WORKER] Socket connection failed");
+                FDAApplication::updateState(FDAApplicationState::NOT_INITIALIZED);
                 break;
             }
 
@@ -106,9 +111,19 @@ void Worker::run()
             break;
         }
 
-        case TaskType::FORMAT_SCRIPT:
+        case TaskType::BEAUTIFY_CODE:
         {
-            Logger::info("[WORKER] FORMAT_SCRIPT task");
+            Logger::info("[WORKER] BEAUTIFY_CODE task");
+
+            try
+            {
+                codeBeautifierHandler->beautify(task.data);
+            }
+            catch (const std::exception& e)
+            {
+                Logger::error("[WORKER] Exception : " + std::string(e.what()));
+            }
+
             break;
         }
 

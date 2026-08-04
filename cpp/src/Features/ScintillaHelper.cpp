@@ -235,3 +235,85 @@ int ScintillaHelper::getCurrentEditorFontSize()
     // Or use: return (fontSizeHundredths + 50) / 100; for rounding
     return fontSizeHundredths / 100;
 }
+
+std::string ScintillaHelper::getCurrentDocument()
+{
+    HWND hSci = getCurrentEditor();
+
+    if (!hSci) {
+        return "";
+    }
+
+    // Get the length of the text in the document
+    const int length = static_cast<int>(SendMessage(
+        hSci,
+        SCI_GETTEXTLENGTH,
+        0,
+        0
+    ));
+
+    if (length <= 0) {
+        return "";
+    }
+
+    // Pre-allocate string buffer with space for the text plus the null terminator
+    // C++17 guarantees contiguous storage compatible with C-style APIs
+    std::string content(length + 1, '\0');
+
+    // Retrieve the text directly into the string's internal buffer
+    SendMessage(
+        hSci,
+        SCI_GETTEXT,
+        length + 1,
+        reinterpret_cast<LPARAM>(content.data())
+    );
+
+    // Resize to exclude the trailing null terminator added by Scintilla
+    content.resize(length);
+
+    return content;
+}
+
+void ScintillaHelper::replaceCurrentDocument(const std::string& content)
+{
+    HWND hSci = getCurrentEditor();
+
+    if (!hSci) {
+        return;
+    }
+
+    // Save current caret position
+    const int caretPos = static_cast<int>(SendMessage(
+        hSci,
+        SCI_GETCURRENTPOS,
+        0,
+        0
+    ));
+
+    // Begin an undo action group to treat the replacement as a single operation
+    SendMessage(hSci, SCI_BEGINUNDOACTION, 0, 0);
+
+    // Replace the entire document content
+    SendMessage(hSci, SCI_SETTEXT, 0, reinterpret_cast<LPARAM>(content.c_str()));
+
+    // Get the new document length to clamp the caret position
+    const int newLength = static_cast<int>(SendMessage(
+        hSci,
+        SCI_GETTEXTLENGTH,
+        0,
+        0
+    ));
+
+    // Ensure the caret position is within the bounds of the new document
+    const int clampedPos = (caretPos > newLength) ? newLength : caretPos;
+
+    // Restore caret WITHOUT selection (SCI_SETSEL with identical start/end clears selection)
+    // This also implicitly handles the anchor position correctly
+    SendMessage(hSci, SCI_SETSEL, clampedPos, clampedPos);
+
+    // Explicitly scroll the view to make the caret visible
+    SendMessage(hSci, SCI_SCROLLCARET, 0, 0);
+
+    // End the undo action group
+    SendMessage(hSci, SCI_ENDUNDOACTION, 0, 0);
+}

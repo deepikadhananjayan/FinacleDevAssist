@@ -3,6 +3,7 @@
 #include "../../Utils/Logger.h"
 #include "../../nlohmann/json.hpp"
 #include "../../DockingFeature/ValidationPanel.h"
+#include "../../PluginDefinition.h"
 
 using json = nlohmann::json;
 
@@ -14,7 +15,6 @@ ValidationHandler::ValidationHandler(FDAClient* client)
 void ValidationHandler::validateScript(const std::string& filePath)
 {
     Logger::info("[VALIDATION] Preparing request");
-
     json request;
 
     request["type"] = "VALIDATE_SCRIPT";
@@ -34,8 +34,11 @@ void ValidationHandler::validateScript(const std::string& filePath)
 
     if (result.noErrors)
     {
+        Logger::info("[VALIDATION] Clearing the Previous Errors, if no errors found");
+        ValidationPanel::hidePanel();
+
         MessageBox(
-            NULL,
+            nppData._nppHandle,
             TEXT(
                 "No Errors or Warnings were detected based on the current validation checks.\n\n"
                 "Note: Finacle Dev Assist is currently under development.\n"
@@ -61,6 +64,7 @@ ValidationResult ValidationHandler::parse(const std::string& response)
         if (data["STATUS"] != "SUCCESS")
         {
             result.excpOccr = true;
+            Logger::error("[VALIDATION] " + data["EXCEPTION"]);
             return result;
         }
 
@@ -72,12 +76,6 @@ ValidationResult ValidationHandler::parse(const std::string& response)
             issue.message = error["message"].get<std::string>();
             issue.type = IssueType::SCR_ERROR;
 
-            Logger::info(
-                std::to_string(issue.line) + " " +
-                issue.message +
-                " -> ERROR"
-            );
-
             result.errors.push_back(issue);
         }
 
@@ -88,12 +86,6 @@ ValidationResult ValidationHandler::parse(const std::string& response)
             issue.line = warning["line"].get<int>();
             issue.message = warning["message"].get<std::string>();
             issue.type = IssueType::SCR_WARNING;
-
-            Logger::info(
-                std::to_string(issue.line) + " " +
-                issue.message +
-                " -> WARNING"
-            );
 
             result.warnings.push_back(issue);
         }

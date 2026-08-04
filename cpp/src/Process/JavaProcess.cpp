@@ -13,6 +13,40 @@ JavaProcess::~JavaProcess()
     stop();
 }
 
+static std::string ws2s(const std::wstring& value)
+{
+    if (value.empty())
+        return "";
+
+    int size = WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        value.c_str(),
+        static_cast<int>(value.length()),
+        nullptr,
+        0,
+        nullptr,
+        nullptr
+    );
+
+    if (size == 0) return "";
+
+    std::string result(size, 0);
+
+    WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        value.c_str(),
+        static_cast<int>(value.length()),
+        result.data(),
+        size,
+        nullptr,
+        nullptr
+    );
+
+    return result;
+}
+
 bool JavaProcess::start()
 {
     if (isRunning())
@@ -35,6 +69,24 @@ bool JavaProcess::start()
 
     basePath = basePath.substr(0, slash + 1);
     std::wstring jarPath = basePath + L"finacle-dev-assist.jar";
+    std::wstring javaPath = basePath + L"jre-17\\bin\\java.exe";
+
+    Logger::info("[JAVA] Runtime: " + ws2s(javaPath));
+    Logger::info("[JAVA] Jar: " + ws2s(jarPath));
+
+    if (GetFileAttributesW(javaPath.c_str()) == INVALID_FILE_ATTRIBUTES)
+    {
+        Logger::error("[JAVA] Runtime not found");
+
+        MessageBoxW(
+            NULL,
+            L"Java Runtime not found",
+            L"FinacleDevAssist",
+            MB_OK | MB_ICONERROR
+        );
+
+        return false;
+    }
 
     if (GetFileAttributesW(jarPath.c_str()) == INVALID_FILE_ATTRIBUTES)
     {
@@ -50,7 +102,7 @@ bool JavaProcess::start()
 
     Logger::info("[JAVA] Starting process");
 
-    std::wstring command = L"java -jar \"" + jarPath + L"\"";
+    std::wstring command = L"\"" + javaPath + L"\" -jar \"" + jarPath + L"\"";
     std::vector<wchar_t> cmdLine(command.begin(), command.end());
     cmdLine.push_back(0);
 

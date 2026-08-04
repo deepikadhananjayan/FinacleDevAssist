@@ -15,4 +15,6 @@ public:
     static bool isScriptFile(const std::string& filePath);
     static std::wstring getCurrentEditorFont();
     static int getCurrentEditorFontSize();
+    static std::string getCurrentDocument();
+    static void replaceCurrentDocument(const std::string& content);
 };

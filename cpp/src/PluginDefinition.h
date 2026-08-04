@@ -76,7 +76,7 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 
 void initializeFDA();
 void validateScript();
-void formatScript();
+void beautifyCode();
 void shutdownFDA();
 void aboutFDA();
 

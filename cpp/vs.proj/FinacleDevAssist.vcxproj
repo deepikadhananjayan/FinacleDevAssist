@@ -28,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Communication\FDAClient.h" />
+    <ClInclude Include="..\src\Communication\Handlers\CodeBeautifierHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\RequestHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\TokenHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\ValidationHandler.h" />
@@ -62,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Communication\FDAClient.cpp" />
+    <ClCompile Include="..\src\Communication\Handlers\CodeBeautifierHandler.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\TokenHandler.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\ValidationHandler.cpp" />
     <ClCompile Include="..\src\Configuration\FDAConfig.cpp" />

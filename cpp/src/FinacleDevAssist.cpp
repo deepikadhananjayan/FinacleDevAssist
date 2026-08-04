@@ -18,6 +18,7 @@
 #include "PluginDefinition.h"
 
 #include "Core/FDAApplication.h"
+#include "DockingFeature/ValidationPanel.h"
 
 extern FuncItem funcItem[nbFunc];
 extern NppData nppData;
@@ -74,8 +75,10 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 	{
 		case NPPN_SHUTDOWN:
 		{
-			if (FDAApplication::getState() == FDAApplicationState::READY)
+			if (FDAApplication::getState() == FDAApplicationState::READY) {
+				ValidationPanel::destroyPanel();
 				FDAApplication::shutdown();
+			}
 			commandMenuCleanUp();
 			break;
 		}

@@ -11,6 +11,7 @@ class JavaProcess;
 class FDAClient;
 class TokenHandler;
 class ValidationHandler;
+class CodeBeautifierHandler;
 
 class Worker
 {
@@ -33,4 +34,5 @@ private:
     std::unique_ptr<FDAClient> client;
     std::unique_ptr<TokenHandler> tokenHandler;
     std::unique_ptr<ValidationHandler> validationHandler;
+    std::unique_ptr<CodeBeautifierHandler> codeBeautifierHandler;
 };

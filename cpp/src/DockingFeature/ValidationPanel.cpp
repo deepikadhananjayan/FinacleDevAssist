@@ -4,15 +4,16 @@
 #include "../Utils/Logger.h"
 #include "../Features/ScintillaHelper.h"
 
+#include <shellapi.h>
+#pragma comment(lib,"shell32.lib")
 #include <commctrl.h>
-
 #pragma comment(lib, "comctl32.lib")
 
 // -----------------------------------------------------------------------------
 // Static Member Initialization
 // -----------------------------------------------------------------------------
 
-HINSTANCE ValidationPanel::_hInstance = NULL;
+HINSTANCE   ValidationPanel::_hInstance = NULL;
 HWND        ValidationPanel::_nppHandle = NULL;
 HWND        ValidationPanel::_hPanel = NULL;
 HWND        ValidationPanel::_hHeader = NULL;
@@ -20,7 +21,12 @@ HWND        ValidationPanel::_hListView = NULL;
 HWND        ValidationPanel::_hSummary = NULL;
 HWND        ValidationPanel::_hDeveloper = NULL;
 HFONT       ValidationPanel::_hFont = NULL;
+HFONT       ValidationPanel::_hBoldFont = NULL;
+HFONT       ValidationPanel::_hLinkFont = NULL;
 
+constexpr auto FDA_GITHUB_URL = TEXT("https://github.com/santhoshswamyv");
+
+bool ValidationPanel::_isRegistered = false;
 std::vector<Issue> ValidationPanel::_issues;
 
 // -----------------------------------------------------------------------------
@@ -28,11 +34,15 @@ std::vector<Issue> ValidationPanel::_issues;
 // Creates UI controls
 // -----------------------------------------------------------------------------
 
-void ValidationPanel::init(
-    HINSTANCE hInstance,
-    HWND      nppHandle
-)
+void ValidationPanel::init(HINSTANCE hInstance, HWND nppHandle)
 {
+    
+    if (_hPanel != NULL)
+    {
+        Logger::error("[VALIDATION PANEL] Panel Already initialized");
+        return;
+    }
+
     _hInstance = hInstance;
     _nppHandle = nppHandle;
 
@@ -131,12 +141,15 @@ void ValidationPanel::init(
 
     _hDeveloper = CreateWindowEx(
         0,
-        TEXT("STATIC"),
-        TEXT("Developed by Sandy <3"),
-        WS_CHILD | WS_VISIBLE | SS_RIGHT,
-        300, 250, 180, 30,
+        L"STATIC",
+        L"Developed by Sandy \xD83D\xDC97",
+        WS_CHILD | WS_VISIBLE | SS_RIGHT | SS_NOTIFY,
+        300,
+        250,
+        180,
+        30,
         _hPanel,
-        NULL,
+        (HMENU)1001,
         hInstance,
         NULL
     );
@@ -161,12 +174,92 @@ void ValidationPanel::init(
         fontName.c_str()
     );
 
+    _hBoldFont = CreateFont(
+        -(fontSize + 2),
+        0, 0, 0,
+        FW_BOLD,
+        FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE,
+        fontName.c_str()
+    );
+
+    _hLinkFont = CreateFont(
+        -(fontSize + 2),
+        0,
+        0,
+        0,
+        FW_BOLD,
+        FALSE,
+        FALSE,
+        FALSE,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE,
+        fontName.c_str()
+    );
+
     SendMessage(_hHeader, WM_SETFONT, (WPARAM)_hFont, TRUE);
     SendMessage(_hListView, WM_SETFONT, (WPARAM)_hFont, TRUE);
-    SendMessage(_hSummary, WM_SETFONT, (WPARAM)_hFont, TRUE);
-    SendMessage(_hDeveloper, WM_SETFONT, (WPARAM)_hFont, TRUE);
+    SendMessage(_hSummary, WM_SETFONT, (WPARAM)_hBoldFont, TRUE);
+    SendMessage(_hDeveloper, WM_SETFONT, (WPARAM)_hLinkFont, TRUE);
+    InvalidateRect(
+        _hDeveloper,
+        NULL,
+        TRUE
+    );
 
     Logger::info("[VALIDATION PANEL] Initialized");
+}
+
+// -----------------------------------------------------------------------------
+// Register panel with Notepad++ docking manager
+// -----------------------------------------------------------------------------
+
+void ValidationPanel::registerPanel()
+{
+    if (_hPanel == NULL)
+    {
+        Logger::error("[VALIDATION PANEL] Panel not initialized");
+        return;
+    }
+
+    if (_isRegistered)
+    {
+        Logger::info("[VALIDATION PANEL] Already registered");
+        return;
+    }
+
+    DockedWidgetData dwd = { 0 };
+    dwd.hClient = _hPanel;
+    dwd.pszName = TEXT("Finacle Dev Assist");
+    dwd.dlgID = 0;
+    dwd.uMask = DWS_DF_CONT_BOTTOM;
+    dwd.pszModuleName = TEXT("FinaclePlugin");
+
+    LRESULT result = ::SendMessage(
+        _nppHandle,
+        NPPM_DMMREGASDCKDLG,
+        0,
+        (LPARAM)&dwd
+    );
+
+    if (result)
+    {
+        _isRegistered = true;
+        Logger::info("[VALIDATION PANEL] Registered");
+
+        ::SendMessage(_nppHandle, NPPM_DMMHIDE, 0, (LPARAM)_hPanel);
+    }
+    else
+    {
+        Logger::error("[VALIDATION PANEL] Registration failed");
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -198,44 +291,6 @@ void ValidationPanel::resize(
 
     // Footer right
     MoveWindow(_hDeveloper, width - 210, height - 40, 200, 30, TRUE);
-}
-
-// -----------------------------------------------------------------------------
-// Register panel with Notepad++ docking manager
-// -----------------------------------------------------------------------------
-
-void ValidationPanel::registerPanel()
-{
-    if (_hPanel == NULL)
-    {
-        Logger::error("[VALIDATION PANEL] Panel not initialized");
-        return;
-    }
-
-    DockedWidgetData dwd = { 0 };
-    dwd.hClient = _hPanel;
-    dwd.pszName = TEXT("Finacle Dev Assist");
-    dwd.dlgID = 0;
-    dwd.uMask = DWS_DF_CONT_BOTTOM;
-    dwd.pszModuleName = TEXT("FinaclePlugin");
-
-    LRESULT result = ::SendMessage(
-        _nppHandle,
-        NPPM_DMMREGASDCKDLG,
-        0,
-        (LPARAM)&dwd
-    );
-
-    if (result)
-    {
-        Logger::info("[VALIDATION PANEL] Registered");
-
-        ::SendMessage(_nppHandle, NPPM_DMMHIDE, 0, (LPARAM)_hPanel);
-    }
-    else
-    {
-        Logger::error("[VALIDATION PANEL] Registration failed");
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -283,13 +338,57 @@ LRESULT CALLBACK ValidationPanel::panelProc(
             DeleteObject(_hFont);
             _hFont = NULL;
         }
+
+        if (_hBoldFont)
+        {
+            DeleteObject(_hBoldFont);
+            _hBoldFont = NULL;
+        }
+
+        if (_hLinkFont)
+        {
+            DeleteObject(_hLinkFont);
+            _hLinkFont = NULL;
+        }
+        break;
+    }
+
+    case WM_SETCURSOR:
+    {
+        HWND hwndControl = (HWND)wParam;
+
+        if (hwndControl == _hDeveloper)
+        {
+            SetCursor(LoadCursor(NULL, IDC_HAND));
+            return TRUE;
+        }
+
+        break;
+    }
+
+    case WM_COMMAND:
+    {
+        if (LOWORD(wParam) == 1001 &&
+            HIWORD(wParam) == STN_CLICKED)
+        {
+            ShellExecute(
+                NULL,
+                TEXT("open"),
+                FDA_GITHUB_URL,
+                NULL,
+                NULL,
+                SW_SHOWNORMAL
+            );
+
+            return 0;
+        }
+
         break;
     }
 
     case WM_NOTIFY:
     {
         LPNMHDR hdr = (LPNMHDR)lParam;
-
 
         if (hdr->hwndFrom == _hListView &&
             hdr->code == NM_DBLCLK)
@@ -308,6 +407,11 @@ LRESULT CALLBACK ValidationPanel::panelProc(
                 Issue issue = _issues[selectedRow];
 
                 int lineNumber = issue.line - 1; // Scintilla uses 0 based index
+
+                if (lineNumber < 0)
+                {
+                    return 0;
+                }
 
                 HWND hSci = ScintillaHelper::getCurrentEditor();
 
@@ -357,9 +461,7 @@ LRESULT CALLBACK ValidationPanel::panelProc(
                 }
                 else
                 {
-                    Logger::error(
-                        "[VALIDATION PANEL] Scintilla handle not found"
-                    );
+                    Logger::error("[VALIDATION PANEL] Scintilla handle not found");
                 }
             }
             return 0;
@@ -399,6 +501,17 @@ void ValidationPanel::showValidationResults(const ValidationResult& result)
 
     _issues.clear();
     ListView_DeleteAllItems(_hListView);
+
+    if (result.excpOccr)
+    {
+        MessageBox(
+            _nppHandle,
+            TEXT("Unexpected Error Occured."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONINFORMATION
+        );
+        return;
+    }
 
     int index = 0;
 
@@ -499,6 +612,55 @@ void ValidationPanel::showValidationResults(const ValidationResult& result)
         0,
         (LPARAM)_hPanel
     );
+}
+void ValidationPanel::hidePanel()
+{
+    Logger::info("[VALIDATION PANEL] Hiding panel");
+
+    // Hide docking panel
+    if (_nppHandle && _hPanel)
+    {
+        ::SendMessage(_nppHandle, NPPM_DMMHIDE, 0, (LPARAM)_hPanel);
+    }
+
+    // Clear current validation result
+    clear();
+
+    Logger::info("[VALIDATION PANEL] Disabled successfully");
+}
+
+
+void ValidationPanel::destroyPanel()
+{
+    Logger::info("[VALIDATION PANEL] Destroying resources");
+
+    // Release font resource
+    if (_hFont)
+    {
+        DeleteObject(_hFont);
+        _hFont = NULL;
+    }
+
+    if (_hBoldFont)
+    {
+        DeleteObject(_hBoldFont);
+        _hBoldFont = NULL;
+    }
+
+    if (_hLinkFont)
+    {
+        DeleteObject(_hLinkFont);
+        _hLinkFont = NULL;
+    }
+
+    _hPanel = NULL;
+    _hHeader = NULL;
+    _hListView = NULL;
+    _hSummary = NULL;
+    _hDeveloper = NULL;
+    _nppHandle = NULL;
+
+    Logger::info("[VALIDATION PANEL] Resources released");
 }
 
 // -----------------------------------------------------------------------------

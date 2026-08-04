@@ -16,7 +16,7 @@ public:
     static void shutdown();
     static void handleAutoComplete(char ch);
     static void handleValidateScript();
-    static void handleFormatScript();
+    static void handleBeautifyCode();
     static std::string getPluginVersion();
     static void aboutPlugin();
     static void updateState(FDAApplicationState currState);

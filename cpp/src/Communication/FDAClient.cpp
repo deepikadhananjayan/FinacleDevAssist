@@ -106,8 +106,6 @@ bool FDAClient::sendRequest(const std::string& request, std::string& response)
         response += ch;
     }
 
-    Logger::debug("[CLIENT] Received : " + response);
-
     return true;
 }
 

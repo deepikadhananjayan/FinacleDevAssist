@@ -7,11 +7,11 @@
 class ValidationPanel
 {
 public:
-    // Initialization and Registration
     static void init(HINSTANCE hInstance, HWND nppHandle);
     static void registerPanel();
+    static void hidePanel();
+    static void destroyPanel();
 
-    // Accessors and Layout
     static HWND getPanel();
     static void resize(int width, int height);
 
@@ -19,6 +19,8 @@ public:
     static void clear();
 
 private:
+    static bool _isRegistered;
+
     // Window Procedure
     static LRESULT CALLBACK panelProc(
         HWND hwnd,
@@ -27,7 +29,6 @@ private:
         LPARAM lParam
     );
 
-private:
     // Instance and Parent Handles
     static HINSTANCE _hInstance;
     static HWND      _nppHandle;
@@ -41,6 +42,8 @@ private:
 
     // Resources
     static HFONT _hFont;
+    static HFONT _hBoldFont;
+    static HFONT _hLinkFont;
 
     static std::vector<Issue> _issues;
 };

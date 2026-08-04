@@ -66,7 +66,7 @@ void commandMenuInit()
     //            );
     setCommand(0, TEXT("Initialize"), initializeFDA, NULL, true);
     setCommand(1, TEXT("Validate Script"), validateScript, NULL, true);
-    setCommand(2, TEXT("Format Script"), formatScript, NULL, false);
+    setCommand(2, TEXT("Beautify Code"), beautifyCode, NULL, true);
     setCommand(3, TEXT("Shutdown"), shutdownFDA, NULL, true);
     setCommand(4, TEXT("About"), aboutFDA, NULL, true);
 }
@@ -134,9 +134,9 @@ void validateScript()
     FDAApplication::handleValidateScript();
 }
 
-void formatScript()
+void beautifyCode()
 {
-    FDAApplication::handleFormatScript();
+    FDAApplication::handleBeautifyCode();
 }
 
 void shutdownFDA()
