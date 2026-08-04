@@ -18,17 +18,50 @@
 		<Keyword>ENDFUNCTION</Keyword>
 	</Keywords>
 	<Functions>
-		<Function name="SYSTEM()">
+		<Function name="REPEXISTS()">
 			<ParamInputs>
-				<ParamInput>COMMAND!STRING</ParamInput>
+				<ParamInput>VALUE!STRING</ParamInput>
 			</ParamInputs>
 		</Function>
-		<Function name="TRIM$()">
+		<Function name="CLASSEXISTS(,)">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+				<ParamInput>VALUE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="CREATEREP()">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="CREATECLASS(,,)">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+				<ParamInput>VALUE!STRING</ParamInput>
+				<ParamInput>VALUE!NUMBER</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="FIELDEXISTS()">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="PRINT()">
 			<ParamInputs>
 				<ParamInput>VALUE!STRING</ParamInput>
 			</ParamInputs>
 		</Function>
 		<Function name="CINT()">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="CDOUBLE()">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="TRIM()">
 			<ParamInputs>
 				<ParamInput>VALUE!STRING</ParamInput>
 			</ParamInputs>
@@ -40,10 +73,15 @@
 				<ParamInput>VALUE!NUMBER</ParamInput>
 			</ParamInputs>
 		</Function>
-		<Function name="CLASSEXISTS(,)">
+		<Function name="FORMAT$(,)">
 			<ParamInputs>
 				<ParamInput>VALUE!STRING</ParamInput>
-				<ParamInput>VALUE!STRING</ParamInput>
+				<ParamInput>TYPE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
+		<Function name="SYSTEM()">
+			<ParamInputs>
+				<ParamInput>COMMAND!STRING</ParamInput>
 			</ParamInputs>
 		</Function>
 	</Functions>
