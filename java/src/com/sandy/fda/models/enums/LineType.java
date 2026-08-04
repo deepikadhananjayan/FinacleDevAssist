@@ -1,6 +1,8 @@
 package com.sandy.fda.models.enums;
 
 public enum LineType {
+    LIBNAME,
+    IMPORT,
     START,
     END,
     TRACEON,
@@ -18,7 +20,9 @@ public enum LineType {
     FUNCTION_CALL,
     FUNCTION,
     ENDFUNCTION,
+    ASSIGNMENT,
     COMMENTLINE,
     EMPTYLINE,
+    BLOCK,
     UNKNOWN;
 }

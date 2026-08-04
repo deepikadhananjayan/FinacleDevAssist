@@ -14,12 +14,12 @@ import com.sandy.fda.models.enums.State;
 import com.sandy.fda.models.enums.TokenType;
 import com.sandy.fda.utils.FDAIssueMessage;
 
+@SuppressWarnings("null")
 public class ConditionValidator {
 
     private FunctionValidator functionValidator;
 
     public ConditionValidator(FunctionValidator functionValidator) {
-
         this.functionValidator = functionValidator;
     }
 
@@ -28,14 +28,14 @@ public class ConditionValidator {
         List<SubToken> expression = new ArrayList<>();
 
         for (int i = 0; i < tokens.size(); i++) {
-            SubToken Token = tokens.get(i);
-            TokenType currType = Token.getType();
+            SubToken token = tokens.get(i);
+            TokenType currType = token.getType();
             TokenType prevType = !expression.isEmpty()
                     ? expression.get(expression.size() - 1).getType()
                     : null;
 
             if (currType == TokenType.OPEN_BRACKET) {
-                brackets.add(Token);
+                brackets.add(token);
                 continue;
             }
 
@@ -61,6 +61,17 @@ public class ConditionValidator {
                 continue;
             }
 
+            if (currType == TokenType.UNKNOWN_IDENTIFIER) {
+                scriptInfo.getIssues().add(new Issue.Builder()
+                        .addLine(line)
+                        .setType(IssueType.ERROR)
+                        .setIssueMessage("[" + token.getValue() + "] "
+                                + FDAIssueMessage.INVALID_IDENTIFIER_FOUND_IN_CONDITION + line.getType() + " in "
+                                + line.getLineNo())
+                        .build());
+                return;
+            }
+
             if (currType == TokenType.AND_OPERATOR
                     || currType == TokenType.OR_OPERATOR) {
                 if (!isValue(prevType) && prevType != TokenType.VALID_EXPRESSION
@@ -74,7 +85,7 @@ public class ConditionValidator {
                             .build());
                     return;
                 }
-                expression.add(Token);
+                expression.add(token);
                 continue;
             }
 
@@ -90,7 +101,7 @@ public class ConditionValidator {
                             .build());
                     return;
                 }
-                expression.add(Token);
+                expression.add(token);
                 continue;
             }
 
@@ -117,7 +128,7 @@ public class ConditionValidator {
                 return;
             }
 
-            expression.add(Token);
+            expression.add(token);
         }
 
         if (!brackets.isEmpty()) {
@@ -276,6 +287,7 @@ public class ConditionValidator {
                 || type == TokenType.NUMBER_LITERAL
                 || type == TokenType.SV_VARIABLE
                 || type == TokenType.FV_VARIABLE
+                || type == TokenType.LV_VARIABLE
                 || type == TokenType.REP_VARIABLE;
     }
 }

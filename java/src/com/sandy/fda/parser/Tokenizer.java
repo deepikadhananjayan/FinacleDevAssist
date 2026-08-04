@@ -11,20 +11,40 @@ import com.sandy.fda.models.Token;
 import com.sandy.fda.models.enums.IssueType;
 import com.sandy.fda.models.enums.TokenType;
 import com.sandy.fda.utils.FDAIssueMessage;
-import com.sandy.fda.utils.ValidatorUtil;
+
+import com.sandy.fda.utils.FDAUtils;
 
 public class Tokenizer {
 
     private TokenParser tokenParser;
-    private Map<String,Token> knownFunctions = null;
+    private Map<String, Token> knownFunctions = null;
+
+    public final String START = "<--START";
+    public final String END = "END-->";
+    public final String TRACE_ON = "TRACE ON";
+    public final String TRACE_OFF = "TRACE OFF";
+    public final String AND = "AND";
+    public final String OR = "OR";
+    public final String LIBNAME = "LIBNAME";
+    public final String IMPORT = "IMPORT";
+    public final String GOTO = "GOTO";
+    public final String GOSUB = "GOSUB";
+    public final String IF = "IF";
+    public final String ELSE = "ELSE";
+    public final String THEN = "THEN";
+    public final String ENDIF = "ENDIF";
+    public final String WHILE = "WHILE";
+    public final String DO = "DO";
+    public final String EXITSCRIPT = "EXITSCRIPT";
 
     public Tokenizer(TokenParser tokenParser) {
         this.tokenParser = tokenParser;
     }
 
-    public Object tokenize(Line line) throws Exception{
+    @SuppressWarnings("null")
+    public Object tokenize(Line line) throws Exception {
 
-        String lineData = ValidatorUtil.rmvCmtNdTrlgSpc(line.getLineContent());
+        String lineData = line.getLineContent().trim();
         List<SubToken> tokens = new ArrayList<>();
 
         int i = 0;
@@ -33,6 +53,20 @@ public class Tokenizer {
 
             if (Character.isWhitespace(c)) {
                 i++;
+                continue;
+            }
+
+            if (c == '#') {
+                StringBuilder value = new StringBuilder();
+                while (i < lineData.length()) {
+                    value.append(lineData.charAt(i));
+                    i++;
+                }
+
+                tokens.add(
+                        new SubToken(
+                                TokenType.COMMENT_CONTENT,
+                                value.toString()));
                 continue;
             }
 
@@ -96,7 +130,6 @@ public class Tokenizer {
             }
 
             if (c == '=' || c == '!' || c == '>' || c == '<') {
-
                 StringBuilder op = new StringBuilder();
                 op.append(c);
                 i++;
@@ -105,6 +138,8 @@ public class Tokenizer {
 
                     char next = lineData.charAt(i);
 
+                    TokenType tokenType = tokens.size() > 0 ? tokens.get(0).getType() : null;
+
                     if (next == '=') {
                         op.append(next);
                         i++;
@@ -112,8 +147,34 @@ public class Tokenizer {
                         return new Issue.Builder()
                                 .addLine(line)
                                 .setType(IssueType.ERROR)
-                                .setIssueMessage("(" + c + next + ")" +
-                                        FDAIssueMessage.INVALID_OPERATOR_SEQUENCE_IN_LINE + line.getLineNo());
+                                .setIssueMessage("[" + c + next + "] " +
+                                        FDAIssueMessage.INVALID_OPERATOR_SEQUENCE_IN_LINE + line.getLineNo())
+                                .build();
+                    } else if (c == '<' && next == '-') {
+                        op.append(next);
+                        i++;
+                        while (i < lineData.length() && START.startsWith(op.toString())) {
+                            op.append(lineData.charAt(i));
+                            i++;
+                        }
+                        if (op.toString().equalsIgnoreCase(START)) {
+                            tokens.add(
+                                    new SubToken(
+                                            TokenType.START,
+                                            op.toString()));
+                            continue;
+                        } else {
+                            return FDAUtils.buildUnexpectedTokenIssue(line);
+                        }
+                    } else if (tokenType == TokenType.REP_VARIABLE
+                            || tokenType == TokenType.SV_VARIABLE
+                            || tokenType == TokenType.FV_VARIABLE
+                            || tokenType == TokenType.LV_VARIABLE) {
+                        tokens.add(
+                                new SubToken(
+                                        TokenType.ASSIGNMENT_OPERATOR,
+                                        op.toString()));
+                        continue;
                     }
                 }
 
@@ -123,9 +184,9 @@ public class Tokenizer {
                     return new Issue.Builder()
                             .addLine(line)
                             .setType(IssueType.ERROR)
-                            .setIssueMessage("(" + operator + ") " +
-                                    FDAIssueMessage.INVALID_OPERATOR_SEQUENCE_IN_LINE +
-                                    line.getLineNo());
+                            .setIssueMessage(FDAIssueMessage.INVALID_OPERATOR_SEQUENCE_IN_LINE +
+                                    line.getLineNo())
+                            .build();
                 }
 
                 tokens.add(
@@ -152,40 +213,98 @@ public class Tokenizer {
                         (Character.isLetterOrDigit(lineData.charAt(i))
                                 || lineData.charAt(i) == '.'
                                 || lineData.charAt(i) == '$'
-                                || lineData.charAt(i) == '_')) {
+                                || lineData.charAt(i) == '_'
+                                || lineData.charAt(i) == ':'
+                                || (TRACE_ON.startsWith(word.toString()))
+                                || (TRACE_OFF.startsWith(word.toString()))
+                                || (END.startsWith(word.toString())))) {
                     word.append(lineData.charAt(i));
                     i++;
                 }
+
                 String value = word.toString();
-                if (value.equals("AND")) {
+
+                if (value.equalsIgnoreCase(AND)) {
                     tokens.add(
-                            new SubToken(
-                                    TokenType.AND_OPERATOR,
+                            new SubToken(TokenType.AND_OPERATOR,
                                     value));
-                } else if (value.equals("OR")) {
+                } else if (value.equalsIgnoreCase(OR)) {
                     tokens.add(
-                            new SubToken(
-                                    TokenType.OR_OPERATOR,
+                            new SubToken(TokenType.OR_OPERATOR,
                                     value));
+                } else if (value.equalsIgnoreCase(EXITSCRIPT)) {
+                    tokens.add(
+                            new SubToken(TokenType.EXITSCRIPT,
+                                    value));
+                } else if (value.equalsIgnoreCase(TRACE_ON)) {
+                    tokens.add(
+                            new SubToken(TokenType.TRACE_ON,
+                                    value));
+                } else if (value.equalsIgnoreCase(TRACE_OFF)) {
+                    tokens.add(
+                            new SubToken(TokenType.TRACE_OFF,
+                                    value));
+                } else if (value.equalsIgnoreCase(END)) {
+                    tokens.add(
+                            new SubToken(TokenType.END,
+                                    value));
+                } else if (value.equalsIgnoreCase(LIBNAME)) {
+                    tokens.add(
+                            new SubToken(TokenType.LIBNAME,
+                                    value));
+                } else if (value.equalsIgnoreCase(IMPORT)) {
+                    tokens.add(
+                            new SubToken(TokenType.IMPORT,
+                                    value));
+                } else if (value.contains(":")) {
+                    tokens.add(
+                            new SubToken(TokenType.LABEL,
+                                    value));
+                } else if (value.equalsIgnoreCase(GOTO)) {
+                    tokens.add(
+                            new SubToken(TokenType.GOTO,
+                                    value));
+                } else if (value.equalsIgnoreCase(GOSUB)) {
+                    tokens.add(
+                            new SubToken(TokenType.GOSUB,
+                                    value));
+                } else if (value.toLowerCase().startsWith("func_")) {
+                    tokens.add(
+                            new SubToken(TokenType.FUNCTION, value));
                 } else if (isBuiltInFunction(value)) {
                     tokens.add(
-                            new SubToken(
-                                    TokenType.FUNCTION,
-                                    value));
-
-                } else if (value.indexOf(".") != -1) {
+                            new SubToken(TokenType.FUNCTION, value));
+                } else if (value.toLowerCase().startsWith("urhk_")) {
                     tokens.add(
-                            new SubToken(
-                                    TokenType.REP_VARIABLE,
+                            new SubToken(TokenType.USERHOOK,
                                     value));
-                } else if (value.startsWith("sv_")) {
+                } else if (value
+                        .matches("^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$")) {
                     tokens.add(
-                            new SubToken(
-                                    TokenType.SV_VARIABLE,
+                            new SubToken(TokenType.REP_VARIABLE,
                                     value));
-                } else if (value.startsWith("fv_")) {
-                    tokens.add(new SubToken(TokenType.FV_VARIABLE,
-                                            value));
+                } else if (value.toLowerCase().startsWith("sv_")) {
+                    tokens.add(
+                            new SubToken(TokenType.SV_VARIABLE,
+                                    value));
+                } else if (value.toLowerCase().startsWith("fv_")) {
+                    tokens.add(
+                            new SubToken(TokenType.FV_VARIABLE,
+                                    value));
+                } else if (value.toLowerCase().startsWith("lv_")) {
+                    tokens.add(
+                            new SubToken(TokenType.LV_VARIABLE,
+                                    value));
+                } else if (value.equalsIgnoreCase(IF) || value.equalsIgnoreCase(THEN)
+                        || value.equalsIgnoreCase(ELSE) || value.equalsIgnoreCase(ENDIF)) {
+                    tokens.add(new SubToken(TokenType.IF_KEYWORDS,
+                            value));
+                } else if (value.equalsIgnoreCase(WHILE) || value.equalsIgnoreCase(DO)) {
+                    tokens.add(new SubToken(TokenType.WHILE_KEYWORDS,
+                            value));
+                } else {
+                    tokens.add(new SubToken(TokenType.UNKNOWN_IDENTIFIER,
+                            value));
                 }
                 continue;
             }
@@ -207,8 +326,8 @@ public class Tokenizer {
         return tokens;
     }
 
-    private boolean isBuiltInFunction(String function) throws Exception{
-        
+    private boolean isBuiltInFunction(String function) throws Exception {
+
         if (knownFunctions == null) {
             this.knownFunctions = tokenParser.getFunctionMap();
         }
@@ -216,16 +335,11 @@ public class Tokenizer {
         String lcFunction = function.toLowerCase();
 
         for (String key : knownFunctions.keySet()) {
-            String lcKey = getFunctionWthotBrcks(key);
-            
+            String lcKey = FDAUtils.getFunctionWthotBrcks(key);
+
             if (lcFunction.equals(lcKey))
                 return true;
         }
         return false;
-    }
-
-    private String getFunctionWthotBrcks(String func) {
-        int endIdx = func.toLowerCase().indexOf("(");
-        return func.substring(0, endIdx).toLowerCase();
     }
 }

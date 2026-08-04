@@ -10,19 +10,20 @@ import com.sandy.fda.models.ScriptInfo;
 import com.sandy.fda.models.ScriptInfo.Builder;
 import com.sandy.fda.parser.ScriptParser;
 import com.sandy.fda.parser.TokenParser;
+import com.sandy.fda.parser.Tokenizer;
 import com.sandy.fda.validator.core.SimpleValidator;
 import com.sandy.fda.validator.core.SyntaxValidator;
 
 public class ScriptValidator {
 
-    private static ScriptParser scriptParser;
-    private static SimpleValidator simpleValidator;
-    private static SyntaxValidator syntaxValidator;
+    private ScriptParser scriptParser;
+    private SimpleValidator simpleValidator;
+    private SyntaxValidator syntaxValidator;
 
-    public ScriptValidator(TokenParser tokenParser){
-        scriptParser = new ScriptParser();
-        simpleValidator = new SimpleValidator();
-        syntaxValidator = new SyntaxValidator(tokenParser);
+    public ScriptValidator(TokenParser tokenParser, Tokenizer tokenizer) {
+        this.scriptParser = new ScriptParser(tokenParser);
+        this.simpleValidator = new SimpleValidator();
+        this.syntaxValidator = new SyntaxValidator(tokenParser, tokenizer);
     }
 
     public JsonObject validate(String filePath) throws Exception {
@@ -40,18 +41,18 @@ public class ScriptValidator {
     }
 
     private JsonObject convertToJsonResponse(ScriptInfo scriptInfo) {
-        
+
         JsonObject response = new JsonObject();
         JsonArray errors = new JsonArray();
         JsonArray warnings = new JsonArray();
-        
+
         response.addProperty("STATUS", "SUCCESS");
         for (Issue issue : scriptInfo.getIssues()) {
-            
+
             List<Line> lines = issue.getLines();
             int lineNo = (lines == null || lines.size() > 1) ? -1 : lines.get(0).getLineNo();
             String message = issue.getIssueMessage();
-            
+
             JsonObject issueObj = new JsonObject();
             issueObj.addProperty("message", message);
             issueObj.addProperty("line", lineNo);
@@ -70,6 +71,8 @@ public class ScriptValidator {
         response.add("warnings", warnings);
         response.addProperty("total_errors", errors.size());
         response.addProperty("total_warnings", warnings.size());
+
+        System.out.println(response);
 
         return response;
     }

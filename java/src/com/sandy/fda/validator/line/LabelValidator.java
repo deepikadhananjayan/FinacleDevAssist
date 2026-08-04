@@ -10,32 +10,61 @@ import com.sandy.fda.models.ScriptInfo;
 import com.sandy.fda.models.SubToken;
 import com.sandy.fda.models.enums.IssueType;
 import com.sandy.fda.models.enums.LineType;
+import com.sandy.fda.parser.Tokenizer;
 import com.sandy.fda.utils.FDAIssueMessage;
-import com.sandy.fda.utils.ValidatorUtil;
+import com.sandy.fda.utils.FDAUtils;
 
-public class LabelValidator{
+public class LabelValidator {
 
+    private Tokenizer tokenizer;
     private boolean labelsLoaded;
     private Map<String, Integer> labelInfo = new HashMap<>();
 
-    private boolean loadLabels(ScriptInfo scriptInfo) {
+    public LabelValidator(Tokenizer tokenizer) {
+        this.tokenizer = tokenizer;
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean loadLabels(ScriptInfo scriptInfo) throws Exception {
         for (Line l : scriptInfo.getAllLines()) {
             if (l.getType() == LineType.LABEL) {
-                String labelName = ValidatorUtil.rmvCmtNdTrlgSpc(l.getLineContent());
-                labelName = labelName.substring(0, labelName.length() - 1).trim();
-                labelInfo.put(labelName, l.getLineNo());
+                Object obj = tokenizer.tokenize(l);
+
+                if (obj instanceof Issue) {
+                    scriptInfo.getIssues().add((Issue) obj);
+                    continue;
+                }
+
+                List<SubToken> tokens = (List<SubToken>) obj;
+                
+                if (tokens.size() > 0) {
+                    int idx = tokens.get(0).getValue().indexOf(":");
+                    if (idx != -1) {
+                        labelInfo.put(tokens.get(0).getValue().substring(0,idx), l.getLineNo());
+                        continue;
+                    }
+
+                    labelInfo.put(tokens.get(0).getValue(), l.getLineNo());
+                }
             }
         }
         return true;
     }
 
-    public void validate(Line line, List<SubToken> tokens, ScriptInfo scriptInfo) {
+    public void validate(Line line, List<SubToken> tokens, ScriptInfo scriptInfo) throws Exception {
+        int lastIdx = tokens.size() - 1;
+        if (lastIdx == -1) {
+            scriptInfo.getIssues().add(new Issue.Builder().addLine(line)
+                    .setIssueMessage("Tokenize issue in line " + line.getLineNo())
+                    .setType(IssueType.ERROR)
+                    .build());
+            return;
+        }
 
-        String lineContent = ValidatorUtil.rmvCmtNdTrlgSpc(line.getLineContent());
         switch (line.getType()) {
             case LABEL:
-                if (!lineContent.matches(".*:$")) {
-                    scriptInfo.getIssues().add(ValidatorUtil.buildUnexpectedTokenIssue(line));
+                if (tokens.size() > 1) {
+                    scriptInfo.getIssues().add(FDAUtils.buildUnexpectedTokenIssue(line));
                     return;
                 }
                 break;
@@ -44,8 +73,12 @@ public class LabelValidator{
                 if (!labelsLoaded)
                     labelsLoaded = loadLabels(scriptInfo);
 
-                // Need to Use tokens
-                String label = lineContent.split(" ")[1].trim();
+                if (tokens.size() > 2) {
+                    scriptInfo.getIssues().add(FDAUtils.buildUnexpectedTokenIssue(line));
+                    return;
+                }
+
+                String label = tokens.get(1).getValue();
                 int labelPos = labelInfo.getOrDefault(label, -1);
 
                 if (labelPos == -1) {

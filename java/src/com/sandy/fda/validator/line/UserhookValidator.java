@@ -9,9 +9,10 @@ import com.sandy.fda.models.ScriptInfo;
 import com.sandy.fda.models.SubToken;
 import com.sandy.fda.models.Token;
 import com.sandy.fda.models.enums.IssueType;
+import com.sandy.fda.models.enums.TokenType;
 import com.sandy.fda.parser.TokenParser;
 import com.sandy.fda.utils.FDAIssueMessage;
-import com.sandy.fda.utils.ValidatorUtil;
+import com.sandy.fda.utils.FDAUtils;
 
 public class UserhookValidator {
 
@@ -25,55 +26,53 @@ public class UserhookValidator {
 
     public void validate(Line line, List<SubToken> tokens, ScriptInfo scriptInfo) throws Exception {
 
+        int lastIdx = tokens.size() - 1;
+        if (lastIdx == -1) {
+            scriptInfo.getIssues().add(new Issue.Builder().addLine(line)
+                    .setIssueMessage("Tokenize issue in line " + line.getLineNo())
+                    .setType(IssueType.ERROR)
+                    .build());
+            return;
+        }
+
+        SubToken lastToken = tokens.get(lastIdx);
+
+        if (lastToken.getType() != TokenType.CLOSE_BRACKET) {
+            scriptInfo.getIssues().add(FDAUtils.buildUnexpectedTokenIssue(line));
+            return;
+        }
+
         if (knownUserhooks == null) {
             this.knownUserhooks = tokenParser.getUserhookMap();
         }
 
-        String lineContent = ValidatorUtil.rmvCmtNdTrlgSpc(line.getLineContent());
-
-        if (!lineContent.matches(".*\\)$")) {
-            scriptInfo.getIssues().add(ValidatorUtil.buildUnexpectedTokenIssue(line));
-            return;
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).getType() == TokenType.USERHOOK) {
+                inspectUserhook(tokens.get(i).getValue(), tokens, line, scriptInfo);
+            }
         }
-
-        Issue issue = inspectUserhook(line);
-
-        if (issue != null) {
-            scriptInfo.getIssues().add(issue);    
-        }
-
-        return;
     }
 
-    private Issue inspectUserhook(Line line) {
-        String lcUserhook = getUserhookWthotBrcks(line.getLineContent());
-        Token userhook = null;
+    private void inspectUserhook(String userhook, List<SubToken> tokens, Line line, ScriptInfo scriptInfo) {
+        String lcUserhook = userhook.toLowerCase();
+        Token urhk = null;
 
         for (String key : knownUserhooks.keySet()) {
-            String lcKey = getUserhookWthotBrcks(key);
+            String lcKey = FDAUtils.getFunctionWthotBrcks(key);
 
             if (lcUserhook.equals(lcKey)) {
-                userhook = knownUserhooks.get(key);
+                urhk = knownUserhooks.get(key);
                 break;
             }
         }
 
-        if (userhook == null) {
-            return new Issue.Builder()
+        if (urhk == null) {
+            scriptInfo.getIssues().add(new Issue.Builder()
                     .addLine(line)
                     .setType(IssueType.WARNING)
                     .setIssueMessage(FDAIssueMessage.USERHOOK_NOT_REGISTERED + line.getLineNo())
-                    .build();
+                    .build());
 
         }
-        // handle parameter checks and all
-        return null;
-    }
-
-    private String getUserhookWthotBrcks(String urhk) {
-        int bgnIdx = urhk.toLowerCase().indexOf("urhk");
-        int endIdx = urhk.toLowerCase().indexOf("(", bgnIdx);
-
-        return urhk.substring(bgnIdx, endIdx).toLowerCase();
     }
 }

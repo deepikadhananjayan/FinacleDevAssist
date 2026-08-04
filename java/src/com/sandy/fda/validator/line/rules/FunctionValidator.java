@@ -13,18 +13,27 @@ import com.sandy.fda.models.enums.IssueType;
 import com.sandy.fda.models.enums.TokenType;
 import com.sandy.fda.parser.TokenParser;
 import com.sandy.fda.utils.FDAIssueMessage;
+import com.sandy.fda.utils.FDAUtils;
 
+@SuppressWarnings("null")
 public class FunctionValidator {
 
     private TokenParser tokenParser;
-    private Map<String,Token> knownFunctions = null;
+    private Map<String, Token> knownFunctions = null;
 
-    public FunctionValidator(TokenParser tokenParser){
+    public FunctionValidator(TokenParser tokenParser) {
         this.tokenParser = tokenParser;
     }
 
-    public void validate(Line line, List<SubToken> tokens, ScriptInfo scriptInfo){
-        
+    public void validate(Line line, List<SubToken> tokens, ScriptInfo scriptInfo) throws Exception {
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).getType() == TokenType.FUNCTION) {
+                i = validateFunction(i, tokens, null, line, scriptInfo);
+                if (i == -1) {
+                    break;
+                }
+            }
+        }
     }
 
     public int validateFunction(int idx, List<SubToken> tokens, StringBuilder function,
@@ -83,10 +92,12 @@ public class FunctionValidator {
 
         List<SubToken> functionTokens = tokens.subList(start, idx + 1);
 
-        function.append(functionTokens.stream()
+        if (function != null) {
+            function.append(functionTokens.stream()
                 .map(SubToken::getValue)
-                .collect(Collectors.joining()));
-
+                .collect(Collectors.joining()));    
+        }
+        
         Issue issue = inspectFunction(functionTokens, line);
 
         if (issue != null) {
@@ -113,7 +124,7 @@ public class FunctionValidator {
         Token function = null;
 
         for (String key : knownFunctions.keySet()) {
-            String lcKey = getFunctionWthotBrcks(key);
+            String lcKey = FDAUtils.getFunctionWthotBrcks(key);
             String lcFunction = functionName.toLowerCase();
             if (lcFunction.equals(lcKey)) {
                 function = knownFunctions.get(key);
@@ -252,10 +263,5 @@ public class FunctionValidator {
                     .build();
 
         return null;
-    }
-
-     private String getFunctionWthotBrcks(String func) {
-        int endIdx = func.toLowerCase().indexOf("(");
-        return func.substring(0, endIdx).toLowerCase();
     }
 }

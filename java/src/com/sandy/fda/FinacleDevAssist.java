@@ -6,8 +6,7 @@ import com.sandy.fda.utils.FDALogger;
 
 public class FinacleDevAssist {
 
-    private static final FinacleDevAssist INSTANCE =
-            new FinacleDevAssist();
+    private static final FinacleDevAssist INSTANCE = new FinacleDevAssist();
 
     private FDASocket fdaSocket;
 

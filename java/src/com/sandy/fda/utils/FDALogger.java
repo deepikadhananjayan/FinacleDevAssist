@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class FDALogger {
 
@@ -83,7 +84,9 @@ public class FDALogger {
             return;
         }
 
-        String message = "[" + LocalDateTime.now() + "] "
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        String message = "[" + LocalDateTime.now().format(formatter) + "] "
                 + "[" + level + "] "
                 + msg;
 

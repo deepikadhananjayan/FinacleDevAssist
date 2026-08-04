@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.sandy.fda.models.enums.IssueType;
 
+@SuppressWarnings("null")
 public class Issue implements Comparable<Issue> {
 
     private List<Line> lines;

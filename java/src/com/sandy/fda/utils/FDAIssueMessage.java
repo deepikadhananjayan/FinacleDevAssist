@@ -78,9 +78,17 @@ public class FDAIssueMessage {
 
     public static final String INVALID_EXPRESSION_IN_CONDITION = "Invalid expression in condition for ";
 
+    public static final String INVALID_IDENTIFIER_FOUND_IN_CONDITION = "Invalid identifier in condition for ";
+
     public static final String EXPECTED_OPERATOR_IN_EXPRESSION = "Expected an operator in condition for ";
 
     public static final String EXPECTED_VALUE_IN_EXPRESSION = "Expected a value in condition for ";
 
     public static final String USERHOOK_NOT_REGISTERED = "Unknown userhook used in line ";
+
+    public static final String LIBNAME_NOT_REGISTERED = "Unknown libname used in line ";
+
+    public static final String LIBNAME_UNDEFINED = "Library name not defined in line ";
+
+    public static final String IMPORT_UNDEFINED = "Import file not defined in line ";
 }

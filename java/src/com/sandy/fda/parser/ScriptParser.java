@@ -1,18 +1,34 @@
 package com.sandy.fda.parser;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.sandy.fda.models.Line;
 import com.sandy.fda.models.Line.Builder;
+import com.sandy.fda.models.Token;
 import com.sandy.fda.models.enums.LineType;
+import com.sandy.fda.utils.FDAUtils;
 
 public class ScriptParser {
+
+    private TokenParser tokenParser;
+    private Map<String, Token> knownFunctions = null;
+
+    private static final Pattern ASSIGNMENT_PATTERN = Pattern.compile(
+            "^\\s*[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*){0,2}\\s*=\\s*.+$");
+
+    private static final Pattern ASSIGNMENT_OPERATOR = Pattern.compile("(?<![<>=!])=(?![=])");
+
+    public ScriptParser(TokenParser tokenParser) {
+        this.tokenParser = tokenParser;
+    }
+
     public List<Line> parse(String filePath) throws Exception {
 
-        List<String> allLines = getAllLines(filePath);
+        List<String> allLines = FDAUtils.getAllLines(filePath);
 
         List<Line> scrLines = new ArrayList<>();
 
@@ -24,15 +40,21 @@ public class ScriptParser {
             builder.setLineContent(lineContent);
             builder.setLineNo(lineNo);
 
-            if (!lineContent.startsWith("#") && lineContent.contains("#"))
-                lineContent = lineContent.substring(0, lineContent.indexOf("#"));
+            lineContent = lineContent.toUpperCase().trim();
 
-            lineContent = lineContent.trim().toUpperCase();
+            if (!lineContent.startsWith("#") && lineContent.contains("#"))
+                lineContent = lineContent.substring(0, lineContent.indexOf("#")).trim();
 
             if (lineContent.isEmpty())
                 builder.setLineType(LineType.EMPTYLINE);
+            else if ((lineContent.matches("#\\s*\\{.*")) || (lineContent.matches("#\\s*\\}.*")))
+                builder.setLineType(LineType.BLOCK);
             else if (lineContent.startsWith("#"))
                 builder.setLineType(LineType.COMMENTLINE);
+            else if (lineContent.matches("^LIBNAME\\b\\s*.*$"))
+                builder.setLineType(LineType.LIBNAME);
+            else if (lineContent.matches("^IMPORT\\b\\s*.*$"))
+                builder.setLineType(LineType.IMPORT);
             else if (lineContent.matches("^<--START\\s*.*"))
                 builder.setLineType(LineType.START);
             else if (lineContent.matches("^END-->\\s*.*"))
@@ -43,7 +65,7 @@ public class ScriptParser {
                 builder.setLineType(LineType.TRACEOFF);
             else if (lineContent.matches("^EXITSCRIPT\\b.*"))
                 builder.setLineType(LineType.EXITSCRIPT);
-            else if (lineContent.matches("^.+:.*$"))
+            else if (lineContent.matches("^\\s*[A-Za-z_][A-Za-z0-9_]*\\s*:[^:]*$"))
                 builder.setLineType(LineType.LABEL);
             else if (lineContent.matches("^IF\\s*\\(.*\\)\\s*(THEN\\b.*)?$"))
                 builder.setLineType(LineType.IF);
@@ -51,14 +73,16 @@ public class ScriptParser {
                 builder.setLineType(LineType.ELSE);
             else if (lineContent.matches("^ENDIF\\b.*$"))
                 builder.setLineType(LineType.ENDIF);
-            else if (lineContent.matches("^WHILE\\s*\\(.*\\)\\.*$"))
+            else if (lineContent.matches("^WHILE\\s*\\(.*\\).*$"))
                 builder.setLineType(LineType.WHILE);
-            else if (lineContent.matches("^DO\\b\\.*$"))
+            else if (lineContent.matches("^DO\\b.*$"))
                 builder.setLineType(LineType.DO);
             else if (lineContent.matches(".*URHK_.*\\(.*\\).*"))
                 builder.setLineType(LineType.USERHOOK);
-            else if (lineContent.matches(".*FUNC_.*\\(.*\\).*"))
+            else if (lineContent.matches(".*FUNC_.*\\(.*\\).*") || isBuiltInFunction(lineContent))
                 builder.setLineType(LineType.FUNCTION_CALL);
+            else if (isAssignment(lineContent))
+                builder.setLineType(LineType.ASSIGNMENT);
             else if (lineContent.matches("^GOTO\\b.*"))
                 builder.setLineType(LineType.GOTO);
             else if (lineContent.matches("^GOTO\\b.*"))
@@ -71,8 +95,38 @@ public class ScriptParser {
         return scrLines;
     }
 
-    private List<String> getAllLines(String filePath) throws Exception {
-        return Files.readAllLines(Paths.get(filePath));
+    private boolean isAssignment(String lineContent) {
+        Matcher structure = ASSIGNMENT_PATTERN.matcher(lineContent);
+
+        if (!structure.matches()) {
+            return false;
+        }
+
+        Matcher operator = ASSIGNMENT_OPERATOR.matcher(lineContent);
+
+        int count = 0;
+        while (operator.find()) {
+            count++;
+        }
+
+        return count == 1;
+    }
+
+    private boolean isBuiltInFunction(String lineContent) throws Exception {
+
+        if (knownFunctions == null) {
+            this.knownFunctions = tokenParser.getFunctionMap();
+        }
+
+        String lcContent = lineContent.toLowerCase();
+
+        for (String key : knownFunctions.keySet()) {
+            String lcKey = FDAUtils.getFunctionWthotBrcks(key);
+
+            if (lcContent.matches(".*" + Pattern.quote(lcKey) + "\\(.*\\).*"))
+                return true;
+        }
+        return false;
     }
 
 }

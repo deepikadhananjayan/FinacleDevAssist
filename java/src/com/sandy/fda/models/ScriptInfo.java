@@ -1,14 +1,16 @@
 package com.sandy.fda.models;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ScriptInfo {
 
     private List<Line> allLines;
     private List<Token> userHookUsed;
-    private List<ScrachPadVariable> spVariablesUsed;
-    private List<Repository> repositories;
+    private Set<ScrachPadVariable> spVariablesUsed;
+    private Set<Repository> repositories;
     private List<Issue> issues;
 
     private ScriptInfo() {
@@ -30,11 +32,11 @@ public class ScriptInfo {
         return userHookUsed;
     }
 
-    public List<ScrachPadVariable> getSpVariablesUsed() {
+    public Set<ScrachPadVariable> getSpVariablesUsed() {
         return spVariablesUsed;
     }
 
-    public List<Repository> getRepositories() {
+    public Set<Repository> getRepositories() {
         return repositories;
     }
 
@@ -46,8 +48,8 @@ public class ScriptInfo {
 
         private List<Line> allLines = new ArrayList<>();
         private List<Token> userHookUsed = new ArrayList<>();
-        private List<ScrachPadVariable> spVariablesUsed = new ArrayList<>();
-        private List<Repository> repositories = new ArrayList<>();
+        private Set<ScrachPadVariable> spVariablesUsed = new HashSet<>();
+        private Set<Repository> repositories = new HashSet<>();
         private List<Issue> issues = new ArrayList<>();
 
         public Builder setAllLines(List<Line> allLines) {
@@ -61,13 +63,13 @@ public class ScriptInfo {
         }
 
         public Builder setSpVariablesUsed(
-                List<ScrachPadVariable> spVariablesUsed) {
+                Set<ScrachPadVariable> spVariablesUsed) {
             this.spVariablesUsed = spVariablesUsed;
             return this;
         }
 
         public Builder setRepositories(
-                List<Repository> repositories) {
+                Set<Repository> repositories) {
             this.repositories = repositories;
             return this;
         }
@@ -99,7 +101,7 @@ public class ScriptInfo {
             return this;
         }
 
-        public Builder addIssue(Issue issue){
+        public Builder addIssue(Issue issue) {
             this.issues.add(issue);
             return this;
         }

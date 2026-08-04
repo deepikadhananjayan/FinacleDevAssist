@@ -76,11 +76,11 @@ public class Token {
             return this;
         }
 
-        public Token build(){
+        public Token build() {
             if (this.type == null) {
                 throw new IllegalStateException("Token Type missing");
             }
-            
+
             return new Token(this);
         }
 

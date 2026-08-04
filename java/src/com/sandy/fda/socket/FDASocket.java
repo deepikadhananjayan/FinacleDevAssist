@@ -9,19 +9,25 @@ import java.net.Socket;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.sandy.fda.beautifier.Beautifier;
 import com.sandy.fda.parser.TokenParser;
+import com.sandy.fda.parser.Tokenizer;
 import com.sandy.fda.utils.FDAConstants;
 import com.sandy.fda.utils.FDALogger;
 import com.sandy.fda.validator.ScriptValidator;
 
 public class FDASocket {
 
-    private static TokenParser tokenParser;
-    private static ScriptValidator scriptValidator;
+    private TokenParser tokenParser;
+    private Tokenizer tokenizer;
+    private ScriptValidator scriptValidator;
+    private Beautifier beautifier;
 
     public FDASocket() {
-        tokenParser = new TokenParser();
-        scriptValidator = new ScriptValidator(tokenParser);
+        this.tokenParser = new TokenParser();
+        this.tokenizer = new Tokenizer(tokenParser);
+        this.scriptValidator = new ScriptValidator(tokenParser, tokenizer);
+        this.beautifier = new Beautifier(tokenParser, tokenizer);
     }
 
     public void initSocket() {
@@ -100,7 +106,9 @@ public class FDASocket {
                             response = scriptValidator.validate(filePath);
                             break;
 
-                        case "FORMAT_FILE":
+                        case "BEAUTIFY_CODE":
+                            filePath = req.get("filePath").getAsString();
+                            response = beautifier.beautifyCode(filePath);
                             break;
 
                         case "GET_SUGGESTIONS":

@@ -24,7 +24,6 @@ public class FDAConstants {
         }
 
         try {
-
             // TODO Change it Compiling to JAR
             // String jarPath = FDAConstants.class
             //         .getProtectionDomain()
@@ -33,9 +32,9 @@ public class FDAConstants {
             //         .toURI()
             //         .getPath();
 
-            // File appDirectory = new File(jarPath).getParentFile();
+            //File appDirectory = new File(jarPath).getParentFile();
 
-            File appDirectory = new File("D:\\Santhosh\\Personal Learning\\Finacle Validator\\FDA\\java\\");
+             File appDirectory = new File("D:\\Santhosh\\Personal Learning\\Finacle Validator\\FDA\\java\\");
 
             propFile = new File(appDirectory, "fdaplugin.properties");
 

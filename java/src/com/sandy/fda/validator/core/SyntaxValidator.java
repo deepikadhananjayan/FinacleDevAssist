@@ -2,6 +2,7 @@ package com.sandy.fda.validator.core;
 
 import java.util.ArrayDeque;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sandy.fda.models.Issue;
 import com.sandy.fda.models.Line;
@@ -9,10 +10,12 @@ import com.sandy.fda.models.ScriptInfo;
 import com.sandy.fda.models.SubToken;
 import com.sandy.fda.models.enums.IssueType;
 import com.sandy.fda.models.enums.LineType;
+import com.sandy.fda.models.enums.TokenType;
 import com.sandy.fda.parser.TokenParser;
 import com.sandy.fda.parser.Tokenizer;
 import com.sandy.fda.utils.FDAIssueMessage;
-import com.sandy.fda.utils.ValidatorUtil;
+import com.sandy.fda.utils.FDALogger;
+import com.sandy.fda.utils.FDAUtils;
 import com.sandy.fda.validator.line.IfValidator;
 import com.sandy.fda.validator.line.LabelValidator;
 import com.sandy.fda.validator.line.UserhookValidator;
@@ -22,27 +25,26 @@ import com.sandy.fda.validator.line.rules.FunctionValidator;
 
 public class SyntaxValidator {
 
-    private static ConditionValidator conditionValidator;
-    private static IfValidator ifValidator;
-    private static WhileValidator whileValidator;
-    private static LabelValidator labelValidator;
-    private static UserhookValidator userhookValidator;
-    private static FunctionValidator functionValidator;
+    private Tokenizer tokenizer;
+    private ConditionValidator conditionValidator;
+    private IfValidator ifValidator;
+    private WhileValidator whileValidator;
+    private LabelValidator labelValidator;
+    private UserhookValidator userhookValidator;
+    private FunctionValidator functionValidator;
 
-    private static Tokenizer tokenizer;
+    public SyntaxValidator(TokenParser tokenParser, Tokenizer tokenizer) {
+        this.tokenizer = tokenizer;
 
-    public SyntaxValidator(TokenParser tokenParser) {
-        tokenizer = new Tokenizer(tokenParser);
-
-        labelValidator = new LabelValidator();
-        userhookValidator = new UserhookValidator(tokenParser);
-        functionValidator = new FunctionValidator(tokenParser);
-        conditionValidator = new ConditionValidator(functionValidator);
-        ifValidator = new IfValidator(tokenParser, conditionValidator);
-        whileValidator = new WhileValidator(tokenParser, conditionValidator);
+        this.labelValidator = new LabelValidator(tokenizer);
+        this.userhookValidator = new UserhookValidator(tokenParser);
+        this.functionValidator = new FunctionValidator(tokenParser);
+        this.conditionValidator = new ConditionValidator(functionValidator);
+        this.ifValidator = new IfValidator(tokenParser, conditionValidator);
+        this.whileValidator = new WhileValidator(tokenParser, conditionValidator);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "null" })
     public void validate(ScriptInfo scriptInfo) throws Exception {
         List<Line> scrLines = scriptInfo.getAllLines();
 
@@ -52,47 +54,54 @@ public class SyntaxValidator {
         for (Line line : scrLines) {
 
             List<SubToken> tokens = null;
+            Issue issue = null;
 
-            if (line.getType() == LineType.IF || line.getType() == LineType.WHILE) {
-                Object obj = tokenizer.tokenize(line);
-
-                if (obj instanceof Issue) {
-                    Issue issue = (Issue) obj;
-                    scriptInfo.getIssues().add(issue);
-                    continue;
-                }
-
-                tokens = (List<SubToken>) obj;
+            if (line.getType() == LineType.EMPTYLINE || line.getType() == LineType.BLOCK) {
+                continue;
             }
 
-            // TODO Handle Tokenizer for All Cases (Now Handled for Condition)
-            // Object obj = tokenizer.tokenize(line);
+            Object obj = tokenizer.tokenize(line);
 
-            // if (obj instanceof Issue) {
-            // Issue issue = (Issue) obj;
-            // scriptInfo.getIssues().add(issue);
-            // continue;
-            // }
-
-            // List<Token> tokens = (List<Token>) obj;
+            if (obj instanceof Issue)
+                issue = (Issue) obj;
+            else {
+                tokens = (List<SubToken>) obj;
+                rmvCmtFromTokens(tokens);
+            }
 
             switch (line.getType()) {
                 case IF: {
-                    ifValidator.validate(line, tokens, scriptInfo);
                     structStack.push(line);
+
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        continue;
+                    }
+
+                    ifValidator.validate(line, tokens, scriptInfo);
                     break;
                 }
                 case ELSE: {
-                    ifValidator.validate(line, tokens, scriptInfo);
                     prevLine = structStack.isEmpty() ? null : structStack.peek();
+                    if (prevLine == null) {
+                        structStack.push(line);
+                        break;
+                    }
+
                     if (prevLine.getType().equals(LineType.IF)) {
                         structStack.pop();
                         structStack.push(line);
                     }
+
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        continue;
+                    }
+
+                    ifValidator.validate(line, tokens, scriptInfo);
                     break;
                 }
                 case ENDIF: {
-                    ifValidator.validate(line, tokens, scriptInfo);
                     prevLine = structStack.isEmpty() ? null : structStack.peek();
                     if (prevLine == null) {
                         structStack.push(line);
@@ -102,15 +111,27 @@ public class SyntaxValidator {
                     if (prevLine.getType().equals(LineType.IF) || prevLine.getType().equals(LineType.ELSE)) {
                         structStack.pop();
                     }
+
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        continue;
+                    }
+
+                    ifValidator.validate(line, tokens, scriptInfo);
                     break;
                 }
                 case WHILE: {
-                    whileValidator.validate(line, tokens, scriptInfo);
                     structStack.push(line);
+
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        continue;
+                    }
+
+                    whileValidator.validate(line, tokens, scriptInfo);
                     break;
                 }
                 case DO: {
-                    whileValidator.validate(line, tokens, scriptInfo);
                     prevLine = structStack.isEmpty() ? null : structStack.peek();
                     if (prevLine == null) {
                         structStack.push(line);
@@ -120,19 +141,41 @@ public class SyntaxValidator {
                     if (prevLine.getType().equals(LineType.WHILE)) {
                         structStack.pop();
                     }
+
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        continue;
+                    }
+
+                    whileValidator.validate(line, tokens, scriptInfo);
                     break;
                 }
                 case LABEL:
                 case GOTO:
                 case GOSUB: {
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        continue;
+                    }
+                    
                     labelValidator.validate(line, tokens, scriptInfo);
                     break;
                 }
                 case USERHOOK: {
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        continue;
+                    }
+                    
                     userhookValidator.validate(line, tokens, scriptInfo);
                     break;
                 }
                 case FUNCTION_CALL: {
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        continue;
+                    }
+
                     functionValidator.validate(line, tokens, scriptInfo);
                     break;
                 }
@@ -152,47 +195,110 @@ public class SyntaxValidator {
                     }
                     break;
                 }
-                case START: {
-                    if (!line.getLineContent().matches("^<--START$")) {
-                        scriptInfo.getIssues().add(ValidatorUtil.buildUnexpectedTokenIssue(line));
-                        return;
+                case LIBNAME: {
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        break;
+                    }
+
+                    if (tokens != null) {
+                        FDALogger.info(tokens.stream().map(SubToken::getValue)
+                                .collect(Collectors.joining(" ")));
+                        if (tokens.size() > 2) {
+                            scriptInfo.getIssues().add(FDAUtils.buildUnexpectedTokenIssue(line));
+                        } else if (tokens.size() == 1) {
+                            scriptInfo.getIssues().add(new Issue.Builder()
+                                    .addLine(line)
+                                    .setType(IssueType.ERROR)
+                                    .setIssueMessage(FDAIssueMessage.LIBNAME_UNDEFINED + line.getLineNo()).build());
+                        } else if (!tokens.get(1).getValue().equals("CUSTOMSO")) {
+                            scriptInfo.getIssues().add(new Issue.Builder()
+                                    .addLine(line)
+                                    .setType(IssueType.WARNING)
+                                    .setIssueMessage(FDAIssueMessage.LIBNAME_NOT_REGISTERED + line.getLineNo())
+                                    .build());
+                        }
                     }
                     break;
                 }
-                case END: {
-                    if (!line.getLineContent().matches("^END-->$")) {
-                        scriptInfo.getIssues().add(ValidatorUtil.buildUnexpectedTokenIssue(line));
-                        return;
+                case IMPORT: {
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        break;
+                    }
+
+                    if (tokens != null) {
+                        if (tokens.size() > 2) {
+                            scriptInfo.getIssues().add(FDAUtils.buildUnexpectedTokenIssue(line));
+                        } else if (tokens.size() == 1) {
+                            scriptInfo.getIssues().add(new Issue.Builder()
+                                    .addLine(line)
+                                    .setType(IssueType.ERROR)
+                                    .setIssueMessage(FDAIssueMessage.IMPORT_UNDEFINED + line.getLineNo()).build());
+                        }
                     }
                     break;
                 }
-                case TRACEON: {
-                    if (!line.getLineContent().matches("^TRACE\\s+ON$")) {
-                        scriptInfo.getIssues().add(ValidatorUtil.buildUnexpectedTokenIssue(line));
-                        return;
-                    }
+                case ASSIGNMENT:{
+                    //FDALogger.info("Line No " + line.getLineNo() + " Line Type -> " + line.getType());
+                    // if (issue != null) {
+                    //     scriptInfo.getIssues().add(issue);
+                    //     FDALogger.info(issue.getIssueMessage());
+                    //     break;
+                    // }
+
+                    //FDALogger.info(tokens.stream().map(SubToken::toString).collect(Collectors.joining(" ")));
+                    //Assignment Logic
                     break;
                 }
-                case TRACEOFF: {
-                    if (!line.getLineContent().matches("^TRACE\\s+OFF$")) {
-                        scriptInfo.getIssues().add(ValidatorUtil.buildUnexpectedTokenIssue(line));
-                        return;
-                    }
-                    break;
-                }
+                case START:
+                case END:
+                case TRACEON:
+                case TRACEOFF:
                 case EXITSCRIPT: {
-                    if (!line.getLineContent().matches("^EXITSCRIPT$")) {
-                        scriptInfo.getIssues().add(ValidatorUtil.buildUnexpectedTokenIssue(line));
-                        return;
+                    if (issue != null) {
+                        scriptInfo.getIssues().add(issue);
+                        break;
+                    }
+
+                    if (tokens != null) {
+                        if (tokens.size() > 1) {
+                            scriptInfo.getIssues().add(FDAUtils.buildUnexpectedTokenIssue(line));
+                        }
                     }
                     break;
                 }
-                default:
+                case EMPTYLINE:
+                case COMMENTLINE:
+                case BLOCK:
                     break;
+                default:
+                    // FDALogger.info("Line No " + line.getLineNo() + " Line Type -> " + line.getType());
+
+                    // if (issue != null) {
+                    //     scriptInfo.getIssues().add(issue);
+                    //     FDALogger.info(issue.getIssueMessage());
+                    //     break;
+                    // }
+
+                    // FDALogger.info(tokens.stream().map(SubToken::toString).collect(Collectors.joining(" ")));
+                    // break;
             }
         }
 
         collectStructureIssues(structStack, scriptInfo);
+    }
+
+    private void rmvCmtFromTokens(List<SubToken> tokens) {
+        if (tokens == null) {
+            return;
+        }
+
+        int lastIdx = tokens.size() - 1;
+
+        if (lastIdx != -1 && tokens.get(lastIdx).getType() == TokenType.COMMENT_CONTENT) {
+            tokens.remove(lastIdx);
+        }
     }
 
     private void collectStructureIssues(ArrayDeque<Line> structStack, ScriptInfo scriptInfo) {

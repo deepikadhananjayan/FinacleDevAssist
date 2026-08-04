@@ -7,7 +7,8 @@ public class Line {
     private int lineNo;
     private String lineContent;
 
-    private Line() {}
+    private Line() {
+    }
 
     private Line(Builder builder) {
         this.type = builder.type;

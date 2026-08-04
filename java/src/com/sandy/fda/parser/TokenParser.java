@@ -96,6 +96,14 @@ public class TokenParser {
                     keyword = keyword.equals("START") ? "<--START" : "END-->";
                 }
 
+                if (keyword.equals("IF")) {
+                    keyword = "IF() THEN";
+                }
+
+                if (keyword.equals("WHILE")) {
+                    keyword = "WHILE()";
+                }
+
                 Builder tokenBuilder = new Token.Builder();
                 tokenBuilder.setToken(keyword).setType(TokenType.KEYWORD);
 
