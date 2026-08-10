@@ -6,15 +6,16 @@
 
 ## What is FinacleDevAssist?
 
-FinacleDevAssist is a **Notepad++ plugin** that narrows down the Finacle scripting development cycle by providing real-time validation, formatting, and developer tooling — all running **fully offline** with no internet dependency during usage.
+FinacleDevAssist is a **Notepad++ plugin** that narrows down the Finacle scripting development cycle by providing real-time validation, formatting, and developer tooling — all running **fully offline** with no internet dependency during usage (with the exception of FI HTTP requests).
 
 ---
 
 ### Current Features
 
 - **Script Validation** — Validate your Finacle script on demand; errors appear in a dockable panel and double-clicking any error jumps directly to that line
-- **Script Beautifier** — Auto-formats and beautifies Finacle scripts, JS, and Java files for clean, readable code
+- **Script Beautifier** — Auto-formats and beautifies Finacle scripts, JS, Java, and **XML** files for clean, readable code
 - **Autocomplete** — Intelligent keyword suggestions with prefix filtering as you type
+- **FI Request / Response** — Send FI XML requests and view formatted responses directly inside Notepad++. Prompts you to input HTTP details (Method, Content-Type, etc.) before execution
 
 ---
 
@@ -62,7 +63,7 @@ plugins\
 
 ## How It Works
 
-The plugin does **not start automatically** when Notepad++ opens. The user initializes it manually from the plugin menu, and can shut it down the same way when done. Everything runs locally — no data leaves your machine.
+The plugin does **not start automatically** when Notepad++ opens. The user initializes it manually from the plugin menu, and can shut it down the same way when done. Everything runs locally — no data leaves your machine unless you explicitly send an FI HTTP request.
 
 ```mermaid
 flowchart TD
@@ -73,13 +74,17 @@ flowchart TD
     D <-->|TCP Socket 127.0.0.1:52000\nNewline-delimited JSON| F[C++ Plugin Layer]
 
     F --> G{User Action}
+    
     G -->|Validate Script| H[JSON Request Sent\nto Java Backend]
     H --> I[Validation Result]
     I --> J[Dockable Error Panel\nDouble-click → Jump to line]
 
-    G -->|Beautify Script| K[Formats \nFinacleScript · JS · Java]
+    G -->|Beautify Script| K[Formats \nFinacleScript · JS · Java · XML]
 
     G -->|Autocomplete| L[Keyword Suggestions\nPrefix Filtered]
+    
+    G -->|FI Handling| N[Prompt User for HTTP Inputs\nMethod, Content-Type, etc.]
+    N --> O[Send FI XML Request &\nView Formatted Response]
 
     C -->|Shutdown| M[Backend Process Terminated\nSocket Closed]
 ```
@@ -90,7 +95,6 @@ flowchart TD
 
 | Feature | Description |
 |---|---|
-| 🌐 **FI Request / Response** | Send FI XML requests and view formatted responses directly inside Notepad++ |
 | 📄 **Custom Menu File Generator** | Auto-generate Finacle menu files from script definitions |
 
 ---
@@ -106,7 +110,7 @@ Even though this is an internal project, contributions from team members are wel
    - C++ plugin layer lives in the DLL (socket lifecycle, UI panels, Scintilla integration)
    - All scripting logic lives in the Java JAR backend
 3. Test against both dark and light Notepad++ themes
-4. Keep it fully offline — no external API calls during normal plugin operation
+4. Keep it fully offline — no external API calls during normal plugin operation (excluding intentional FI request routing)
 
 ### Areas where help is needed
 
@@ -121,7 +125,7 @@ Even though this is an internal project, contributions from team members are wel
 - **Notepad++** — any recent version (64-bit recommended)
 - **Windows** — 10 or later
 - **Java** — bundled JRE 17 is included, no separate installation needed
-- **Internet** — only required during installation (to download the release package)
+- **Internet** — required during installation (to download the release package) and when explicitly sending FI HTTP requests
 
 ---
 
