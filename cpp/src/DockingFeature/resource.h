@@ -18,14 +18,32 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
 
-
 #ifndef IDC_STATIC
-#define IDC_STATIC	-1
+#define IDC_STATIC -1
 #endif
 
-#define	IDD_PLUGINGOLINE_DEMO		2500
-#define	ID_GOLINE_EDIT	(IDD_PLUGINGOLINE_DEMO + 1)
-#define	ID_UGO_STATIC  (IDD_PLUGINGOLINE_DEMO + 5)
+#define IDD_PLUGINGOLINE_DEMO        2500
+#define ID_GOLINE_EDIT               (IDD_PLUGINGOLINE_DEMO + 1)
+#define ID_UGO_STATIC                (IDD_PLUGINGOLINE_DEMO + 5)
 
+#define IDD_BEAUTIFY_LANGUAGE_DIALOG  5001
+#define IDC_BEAUTIFY_LANGUAGE         5002
+#define IDC_BEAUTIFY_LANGUAGE_LABEL   5003
+#define IDI_FDA_SMALL 5004
+
+#define IDD_FI_REQUEST_DIALOG          5005
+
+#define IDC_FI_ENVIRONMENT             5006
+#define IDC_FI_METHOD                  5007
+#define IDC_FI_CONTENT_TYPE            5008
+#define IDC_FI_ACCEPT                  5009
+
+#define IDC_FI_ENVIRONMENT_LABEL       5010
+#define IDC_FI_METHOD_LABEL            5011
+#define IDC_FI_CONTENT_TYPE_LABEL      5012
+#define IDC_FI_ACCEPT_LABEL            5013
+
+#define IDC_FI_CONTENT_TYPE_CUSTOM     5014
+#define IDC_FI_ACCEPT_CUSTOM           5015
 #endif // RESOURCE_H
 

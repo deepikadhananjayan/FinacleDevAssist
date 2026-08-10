@@ -38,7 +38,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT("Finacle Dev Assist");
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 5;
+const int nbFunc = 6;
 
 //
 // Initialization of your plugin data
@@ -77,6 +77,7 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 void initializeFDA();
 void validateScript();
 void beautifyCode();
+void sendFIRequest();
 void shutdownFDA();
 void aboutFDA();
 

@@ -9,6 +9,7 @@
 
 std::string FDAConfig::javaHost = "127.0.0.1";
 int FDAConfig::javaPort = 0;
+std::vector<std::string> FDAConfig::fiEnvironments;
 
 bool FDAConfig::load()
 {
@@ -44,7 +45,8 @@ bool FDAConfig::load()
     }
 
     Logger::info("[CONFIG] Reading fdaplugin.properties");
-
+    
+    fiEnvironments.clear();
     std::string line;
     while (std::getline(file, line))
     {
@@ -55,6 +57,18 @@ bool FDAConfig::load()
         else if (line.find("java.port=") == 0)
         {
             javaPort = std::stoi(line.substr(10));
+        }
+        else if (line.find("fi.") == 0)
+        {
+            size_t separator = line.find('=');
+
+            if (separator != std::string::npos)
+            {
+                std::string environment = line.substr(0, separator);
+                fiEnvironments.push_back(environment);
+
+                Logger::info("[CONFIG] FI Environment : " + environment);
+            }
         }
     }
 
@@ -106,4 +120,9 @@ std::string FDAConfig::getJavaHost()
 int FDAConfig::getJavaPort()
 {
     return javaPort;
+}
+
+const std::vector<std::string>& FDAConfig::getFIEnvironments()
+{
+    return fiEnvironments;
 }

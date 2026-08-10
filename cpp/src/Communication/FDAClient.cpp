@@ -29,7 +29,7 @@ bool FDAClient::connect()
 
     socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    DWORD timeout = 5000;
+    DWORD timeout = 35000;
 
     setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 

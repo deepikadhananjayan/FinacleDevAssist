@@ -26,21 +26,10 @@ void AutoCompleteManager::showSuggestions(char ch)
 
     std::string currentWord = ScintillaHelper::getCurrentWord(editor);
 
-    Logger::info(
-        "[AUTOCOMPLETE] Current Word : " + currentWord);
-
     if (currentWord.length() < 2)
         return;
 
     auto suggestions = AutoCompleteManager::getSuggestions(currentWord);
-
-    Logger::info("[AUTOCOMPLETE] Suggestions count : " +
-        std::to_string(suggestions.size()));
-
-    for (const auto& suggestion : suggestions)
-    {
-        Logger::info("[AUTOCOMPLETE] " + suggestion);
-    }
 
     if (suggestions.empty())
         return;

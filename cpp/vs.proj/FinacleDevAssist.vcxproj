@@ -29,6 +29,7 @@
   <ItemGroup>
     <ClInclude Include="..\src\Communication\FDAClient.h" />
     <ClInclude Include="..\src\Communication\Handlers\CodeBeautifierHandler.h" />
+    <ClInclude Include="..\src\Communication\Handlers\FIExecutionHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\RequestHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\TokenHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\ValidationHandler.h" />
@@ -36,6 +37,8 @@
     <ClInclude Include="..\src\Core\FDAApplication.h" />
     <ClInclude Include="..\src\Core\FDAApplicationState.h" />
     <ClInclude Include="..\src\Core\TokenStore.h" />
+    <ClInclude Include="..\src\Dialogs\BeautifyLanguageDialog.h" />
+    <ClInclude Include="..\src\Dialogs\FIRequestDialog.h" />
     <ClInclude Include="..\src\DockingFeature\Docking.h" />
     <ClInclude Include="..\src\DockingFeature\DockingDlgInterface.h" />
     <ClInclude Include="..\src\DockingFeature\dockingResource.h" />
@@ -47,7 +50,10 @@
     <ClInclude Include="..\src\Features\AutoCompleteManager.h" />
     <ClInclude Include="..\src\Features\ScintillaHelper.h" />
     <ClInclude Include="..\src\menuCmdID.h" />
+    <ClInclude Include="..\src\Models\BeautifyData.h" />
+    <ClInclude Include="..\src\Models\FIRequestData.h" />
     <ClInclude Include="..\src\Models\Issue.h" />
+    <ClInclude Include="..\src\Models\Task.h" />
     <ClInclude Include="..\src\Models\ValidationResult.h" />
     <ClInclude Include="..\src\Notepad_plus_msgs.h" />
     <ClInclude Include="..\src\PluginDefinition.h" />
@@ -64,11 +70,14 @@
   <ItemGroup>
     <ClCompile Include="..\src\Communication\FDAClient.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\CodeBeautifierHandler.cpp" />
+    <ClCompile Include="..\src\Communication\Handlers\FIExecutionHandler.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\TokenHandler.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\ValidationHandler.cpp" />
     <ClCompile Include="..\src\Configuration\FDAConfig.cpp" />
     <ClCompile Include="..\src\Core\FDAApplication.cpp" />
     <ClCompile Include="..\src\Core\TokenStore.cpp" />
+    <ClCompile Include="..\src\Dialogs\BeautifyLanguageDialog.cpp" />
+    <ClCompile Include="..\src\Dialogs\FIRequestDialog.cpp" />
     <ClCompile Include="..\src\DockingFeature\GoToLineDlg.cpp" />
     <ClCompile Include="..\src\DockingFeature\StaticDialog.cpp" />
     <ClCompile Include="..\src\DockingFeature\ValidationPanel.cpp" />
@@ -84,6 +93,12 @@
   <ItemGroup>
     <ResourceCompile Include="..\src\DockingFeature\goLine.rc" />
     <ResourceCompile Include="..\src\FinacleDevAssist.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\Resources\fda_small.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="..\src\app.manifest" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9D04DBD5-E12E-44E0-A683-6F43F21D533B}</ProjectGuid>
@@ -158,6 +173,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin64\</OutDir>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <LinkIncremental>false</LinkIncremental>
@@ -248,6 +264,7 @@ copy ..\readme.FIRST ..\bin\readme.FIRST</Command>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -258,8 +275,8 @@ copy ..\readme.FIRST ..\bin\readme.FIRST</Command>
       <ImportLibrary>$(TargetName).lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\license.txt ..\bin64\license.txt
-copy ..\readme.FIRST ..\bin64\readme.FIRST</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">

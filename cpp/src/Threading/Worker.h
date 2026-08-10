@@ -6,12 +6,14 @@
 #include <atomic>
 #include <memory>
 #include "TaskQueue.h"
+#include "../Models/Task.h"
 
 class JavaProcess;
 class FDAClient;
 class TokenHandler;
 class ValidationHandler;
 class CodeBeautifierHandler;
+class FIExecutionHandler;
 
 class Worker
 {
@@ -35,4 +37,5 @@ private:
     std::unique_ptr<TokenHandler> tokenHandler;
     std::unique_ptr<ValidationHandler> validationHandler;
     std::unique_ptr<CodeBeautifierHandler> codeBeautifierHandler;
+    std::unique_ptr<FIExecutionHandler> fiExecutionHandler;
 };

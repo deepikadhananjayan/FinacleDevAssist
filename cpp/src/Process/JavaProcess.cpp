@@ -38,7 +38,7 @@ static std::string ws2s(const std::wstring& value)
         0,
         value.c_str(),
         static_cast<int>(value.length()),
-        result.data(),
+        &result[0],
         size,
         nullptr,
         nullptr

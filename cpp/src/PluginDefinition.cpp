@@ -67,8 +67,9 @@ void commandMenuInit()
     setCommand(0, TEXT("Initialize"), initializeFDA, NULL, true);
     setCommand(1, TEXT("Validate Script"), validateScript, NULL, true);
     setCommand(2, TEXT("Beautify Code"), beautifyCode, NULL, true);
-    setCommand(3, TEXT("Shutdown"), shutdownFDA, NULL, true);
-    setCommand(4, TEXT("About"), aboutFDA, NULL, true);
+    setCommand(3, TEXT("Get FI Response"), sendFIRequest, NULL, true);
+    setCommand(4, TEXT("Shutdown"), shutdownFDA, NULL, true);
+    setCommand(5, TEXT("About"), aboutFDA, NULL, true);
 }
 
 //
@@ -137,6 +138,11 @@ void validateScript()
 void beautifyCode()
 {
     FDAApplication::handleBeautifyCode();
+}
+
+void sendFIRequest()
+{
+    FDAApplication::handleFIExecution();
 }
 
 void shutdownFDA()

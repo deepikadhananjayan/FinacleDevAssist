@@ -1,11 +1,16 @@
 #include "FDAApplication.h"
 #include "../Threading/Worker.h"
-#include "../Threading/Task.h"
+#include "../Models/Task.h"
 #include "../Utils/Logger.h"
 #include "../Features/AutoCompleteManager.h"
 #include "../Features/ScintillaHelper.h"
 #include "../DockingFeature/ValidationPanel.h"
 #include "../PluginDefinition.h"
+#include "../Models/BeautifyData.h"
+#include "../Dialogs/BeautifyLanguageDialog.h"
+#include "../Dialogs/FIRequestDialog.h"
+#include "../DockingFeature/resource.h"
+#include "../Models/FIRequestData.h"
 
 #pragma comment(lib, "Version.lib")
 
@@ -18,7 +23,7 @@ void FDAApplication::initialize(HANDLE hModule)
     if (state != FDAApplicationState::NOT_INITIALIZED)
     {
         MessageBox(
-            NULL,
+            nppData._nppHandle,
             TEXT("FDA Plugin is already initialized."),
             TEXT("Finacle Dev Assist"),
             MB_OK | MB_ICONINFORMATION
@@ -158,7 +163,7 @@ void FDAApplication::handleValidateScript()
         std::string errorMessage = filePath.substr(3);
 
         MessageBoxA(
-            NULL,
+            nppData._nppHandle,
             errorMessage.c_str(),
             "Finacle Dev Assist",
             MB_OK | MB_ICONWARNING
@@ -178,7 +183,7 @@ void FDAApplication::handleValidateScript()
     if (isFileModified)
     {
         MessageBox(
-            NULL,
+            nppData._nppHandle,
             TEXT("Please save the file before validating script."),
             TEXT("Finacle Dev Assist"),
             MB_OK | MB_ICONWARNING
@@ -187,10 +192,10 @@ void FDAApplication::handleValidateScript()
         return;
     }
 
-    if (!ScintillaHelper::isScriptFile(filePath))
+    if (!ScintillaHelper::isValidFile(filePath))
     {
         MessageBox(
-            NULL,
+            nppData._nppHandle,
             TEXT("Only Finacle script files (.scr) can be validated."),
             TEXT("Finacle Dev Assist"),
             MB_OK | MB_ICONWARNING
@@ -202,16 +207,46 @@ void FDAApplication::handleValidateScript()
     worker->submit({ TaskType::VALIDATE_SCRIPT, filePath });
 }
 
+std::string FDAApplication::selectBeautifyContentType()
+{
+    INT_PTR result =
+        DialogBox(
+            moduleHandle,
+            MAKEINTRESOURCE(IDD_BEAUTIFY_LANGUAGE_DIALOG),
+            nppData._nppHandle,
+            BeautifyLanguageDialogProc
+        );
+
+    switch (result)
+    {
+    case 1:
+        return "JAVA";
+
+    case 2:
+        return "JS";
+
+    case 3:
+        return "XML";
+
+    case 4:
+        return "SCRIPT";
+
+    default:
+        return "";
+    }
+}
+
 void FDAApplication::handleBeautifyCode()
 {
     if (state != FDAApplicationState::READY)
     {
         MessageBox(
-            NULL,
+            nppData._nppHandle,
             TEXT("FDA Plugin is not initialized."),
             TEXT("Finacle Dev Assist"),
             MB_OK | MB_ICONINFORMATION
         );
+
         return;
     }
 
@@ -222,7 +257,7 @@ void FDAApplication::handleBeautifyCode()
         std::string errorMessage = filePath.substr(3);
 
         MessageBoxA(
-            NULL,
+            nppData._nppHandle,
             errorMessage.c_str(),
             "Finacle Dev Assist",
             MB_OK | MB_ICONWARNING
@@ -231,19 +266,20 @@ void FDAApplication::handleBeautifyCode()
         return;
     }
 
-    LRESULT isFileModified =
-        ::SendMessage(
-            ScintillaHelper::getCurrentEditor(),
-            SCI_GETMODIFY,
-            0,
-            0
-        );
+    HWND editor = ScintillaHelper::getCurrentEditor();
 
-    if (isFileModified)
+    LRESULT selectionStart = ::SendMessage(editor, SCI_GETSELECTIONSTART, 0, 0);
+    LRESULT selectionEnd = ::SendMessage(editor, SCI_GETSELECTIONEND, 0, 0);
+
+    bool hasSelection = (selectionStart != selectionEnd);
+
+    std::string content = ScintillaHelper::getSelectedOrAllText();
+
+    if (content.empty())
     {
         MessageBox(
-            NULL,
-            TEXT("Please save the file before beautifing."),
+            nppData._nppHandle,
+            TEXT("There is no code to beautify."),
             TEXT("Finacle Dev Assist"),
             MB_OK | MB_ICONWARNING
         );
@@ -251,14 +287,76 @@ void FDAApplication::handleBeautifyCode()
         return;
     }
 
-    //MessageBox(
-    //    NULL,
-    //    TEXT("Beautify Code Feature is Under Development!."),
-    //    TEXT("Finacle Dev Assist"),
-    //    MB_OK | MB_ICONINFORMATION
-    //);
+    std::string contentType = ScintillaHelper::getContentType(filePath);
 
-    worker->submit({ TaskType::BEAUTIFY_CODE, filePath });
+    if (contentType.empty())
+    {
+        contentType = selectBeautifyContentType();
+
+        if (contentType.empty())
+        {
+            return;
+        }
+    }
+
+    BeautifyData beautifyData;
+    beautifyData.contentType = contentType;
+    beautifyData.content = content;
+    beautifyData.hasSelection = hasSelection;
+
+    worker->submit({ TaskType::BEAUTIFY_CODE, beautifyData });
+}
+
+void FDAApplication::handleGenerateMenuSource()
+{
+    if (state != FDAApplicationState::READY)
+    {
+        MessageBox(
+            nppData._nppHandle,
+            TEXT("FDA Plugin is not initialized."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONINFORMATION
+        );
+        return;
+    }
+
+    MessageBox(
+        nppData._nppHandle,
+        TEXT("Generate MenuSource Feature is Under Development!."),
+        TEXT("Finacle Dev Assist"),
+        MB_OK | MB_ICONINFORMATION
+    );
+}
+
+void FDAApplication::handleFIExecution()
+{   
+    if (state != FDAApplicationState::READY)
+    {
+        MessageBox(
+            nppData._nppHandle,
+            TEXT("FDA Plugin is not initialized."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONINFORMATION
+        );
+        return;
+    }
+
+    FIRequestData fiRequestData;
+
+    INT_PTR result = DialogBoxParam(
+        moduleHandle,
+        MAKEINTRESOURCE(IDD_FI_REQUEST_DIALOG),
+        nppData._nppHandle,
+        FIRequestDialogProc,
+        reinterpret_cast<LPARAM>(&fiRequestData)
+    );
+
+    if (result != IDOK)
+        return;
+
+    fiRequestData.body = ScintillaHelper::getSelectedOrAllText();
+    
+    worker->submit({ TaskType::EXECUTE_FI_REQUEST, fiRequestData });
 }
 
 void FDAApplication::aboutPlugin()
@@ -276,7 +374,7 @@ void FDAApplication::aboutPlugin()
         "Developed by Sandy <3";
 
     MessageBoxA(
-        NULL,
+        nppData._nppHandle,
         about.c_str(),
         "About Finacle Dev Assist",
         MB_OK | MB_ICONINFORMATION

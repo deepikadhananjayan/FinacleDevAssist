@@ -3,6 +3,7 @@
 #include "../../Utils/Logger.h"
 #include "../../Core/TokenStore.h"
 #include "../../nlohmann/json.hpp"
+#include "../../PluginDefinition.h"
 
 using json = nlohmann::json;
 
@@ -42,7 +43,7 @@ void TokenHandler::parse(const std::string& response)
         if (result["STATUS"] != "SUCCESS"){
 
             MessageBox(
-                NULL,
+                nppData._nppHandle,
                 TEXT("Unexpected Error Occured."),
                 TEXT("Finacle Dev Assist"),
                 MB_OK | MB_ICONINFORMATION

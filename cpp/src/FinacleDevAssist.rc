@@ -1,6 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
+#include "DockingFeature/resource.h"
 /////////////////////////////////////////////////////////////////////////////
 // English (United Kingdom) resources
 
@@ -49,8 +50,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_INDIA
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,1,0,0
- PRODUCTVERSION 0,1,0,0
+ FILEVERSION 0,2,0,0
+ PRODUCTVERSION 0,2,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -67,12 +68,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Sandy <3 - santhoshswamyv@gmail.com"
             VALUE "FileDescription", "Finacle Developer Plugin for Notepad++"
-            VALUE "FileVersion", "0.1.0.0"
+            VALUE "FileVersion", "0.2.0.0"
             VALUE "InternalName", "FinacleDevAssist.dll"
             VALUE "LegalCopyright", "Copyright 2026 by Sandy <3"
             VALUE "OriginalFilename", "FinacleDevAssist"
             VALUE "ProductName", "FinacleDevAssist"
-            VALUE "ProductVersion", "0.1.0.0"
+            VALUE "ProductVersion", "0.2.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -81,6 +82,59 @@ BEGIN
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST
+//
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST             "app.manifest"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_FDA_SMALL           ICON                    "Resources\\fda_small.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_BEAUTIFY_LANGUAGE_DIALOG DIALOGEX 0, 0, 220, 90
+STYLE 0x80000000 | 0x00C00000 | 0x00080000 | 0x00000040
+CAPTION "Beautify Code"
+FONT 9, "Segoe UI", 0, 0, 0x1
+BEGIN
+LTEXT           "Select language:", IDC_BEAUTIFY_LANGUAGE_LABEL, 10, 12, 80, 12
+COMBOBOX        IDC_BEAUTIFY_LANGUAGE, 10, 28, 200, 100, 0x0003 | 0x00200000 | 0x00000001
+DEFPUSHBUTTON   "OK", IDOK, 105, 62, 50, 16
+PUSHBUTTON      "Cancel", IDCANCEL, 160, 62, 50, 16
+END
+
+IDD_FI_REQUEST_DIALOG DIALOGEX 0, 0, 300, 210
+STYLE 0x80000000 | 0x00C00000 | 0x00080000 | 0x00000040
+CAPTION "Execute FI Request"
+FONT 9, "Segoe UI", 0, 0, 0x1
+BEGIN
+LTEXT           "Environment:", IDC_FI_ENVIRONMENT_LABEL, 10, 15, 80, 12
+COMBOBOX        IDC_FI_ENVIRONMENT, 95, 12, 195, 100, 0x0003 | 0x00200000 | 0x00000001
+LTEXT           "Method:", IDC_FI_METHOD_LABEL, 10, 43, 80, 12
+COMBOBOX        IDC_FI_METHOD, 95, 40, 195, 100, 0x0003 | 0x00200000 | 0x00000001
+LTEXT           "Content-Type:", IDC_FI_CONTENT_TYPE_LABEL, 10, 71, 80, 12
+COMBOBOX        IDC_FI_CONTENT_TYPE, 95, 68, 195, 100, 0x0003 | 0x00200000 | 0x00000001
+EDITTEXT        IDC_FI_CONTENT_TYPE_CUSTOM, 95, 88, 195, 14, 0x00000080
+LTEXT           "Accept:", IDC_FI_ACCEPT_LABEL, 10, 115, 80, 12
+COMBOBOX        IDC_FI_ACCEPT, 95, 112, 195, 100, 0x0003 | 0x00200000 | 0x00000001
+EDITTEXT        IDC_FI_ACCEPT_CUSTOM, 95, 132, 195, 14, 0x00000080
+DEFPUSHBUTTON   "Execute", IDOK, 180, 178, 55, 18
+PUSHBUTTON      "Cancel", IDCANCEL, 240, 178, 50, 18
+END
 #endif    // English (India) resources
 /////////////////////////////////////////////////////////////////////////////
 

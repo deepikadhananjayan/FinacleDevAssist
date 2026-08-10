@@ -15,6 +15,48 @@ HWND ScintillaHelper::getCurrentEditor()
     return nppData._scintillaSecondHandle;
 }
 
+std::string ScintillaHelper::getSelectedOrAllText()
+{
+    HWND editor = getCurrentEditor();
+
+    if (editor == nullptr)
+    {
+        Logger::error("[SCINTILLA] Could not get the Editor");
+        return "";
+    }
+
+    int start = static_cast<int>(::SendMessage(editor, SCI_GETSELECTIONSTART, 0, 0));
+    int end = static_cast<int>(::SendMessage(editor, SCI_GETSELECTIONEND, 0, 0));
+
+    int length = 0;
+
+    if (start != end)
+    {
+        length = end - start;
+    }
+    else
+    {
+        start = 0;
+        length = static_cast<int>(::SendMessage(editor, SCI_GETLENGTH, 0, 0));
+    }
+
+    if (length <= 0)
+        return "";
+
+    Sci_TextRangeFull tr{};
+    tr.chrg.cpMin = start;
+    tr.chrg.cpMax = start + length;
+
+    std::vector<char> buffer(length + 1, 0);
+    tr.lpstrText = buffer.data();
+
+    ::SendMessage(editor, SCI_GETTEXTRANGEFULL, 0, reinterpret_cast<LPARAM>(&tr));
+
+    buffer.back() = '\0';
+
+    return std::string(buffer.data());
+}
+
 std::string ScintillaHelper::getCurrentWord(HWND editor)
 {
     int pos = (int)::SendMessage(editor, SCI_GETCURRENTPOS, 0, 0);
@@ -138,13 +180,13 @@ std::string ScintillaHelper::getCurrentFilePath()
     return path;
 }
 
-bool ScintillaHelper::isScriptFile(const std::string& filePath)
+std::string ScintillaHelper::getFileExtension(const std::string& filePath)
 {
     size_t dotPos = filePath.find_last_of('.');
 
     if (dotPos == std::string::npos)
     {
-        return false;
+        return "";
     }
 
     std::string extension = filePath.substr(dotPos);
@@ -159,7 +201,40 @@ bool ScintillaHelper::isScriptFile(const std::string& filePath)
         }
     );
 
+    return extension;
+}
+
+bool ScintillaHelper::isValidFile(const std::string& filePath)
+{
+    std::string extension = getFileExtension(filePath);
     return extension == ".scr";
+}
+
+std::string ScintillaHelper::getContentType(const std::string& filePath)
+{
+    std::string extension = getFileExtension(filePath);
+
+    if (extension == ".java")
+    {
+        return "JAVA";
+    }
+
+    if (extension == ".js")
+    {
+        return "JS";
+    }
+
+    if (extension == ".xml")
+    {
+        return "XML";
+    }
+
+    if (extension == ".scr")
+    {
+        return "SCRIPT";
+    }
+
+    return "";
 }
 
 std::wstring ScintillaHelper::getCurrentEditorFont()
@@ -272,6 +347,24 @@ std::string ScintillaHelper::getCurrentDocument()
     content.resize(length);
 
     return content;
+}
+
+void ScintillaHelper::replaceSelectedContent(const std::string& text)
+{
+    HWND editor = getCurrentEditor();
+
+    if (editor == nullptr)
+    {
+        Logger::error("[SCINTILLA] Could not get the Editor");
+        return;
+    }
+
+    ::SendMessage(
+        editor,
+        SCI_REPLACESEL,
+        0,
+        reinterpret_cast<LPARAM>(text.c_str())
+    );
 }
 
 void ScintillaHelper::replaceCurrentDocument(const std::string& content)

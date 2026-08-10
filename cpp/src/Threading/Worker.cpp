@@ -1,12 +1,13 @@
 #include "Worker.h"
+#include "../Utils/Logger.h"
+#include "../Configuration/FDAConfig.h"
 #include "../Process/JavaProcess.h"
 #include "../Core/FDAApplication.h"
 #include "../Communication/FDAClient.h"
 #include "../Communication/Handlers/TokenHandler.h"
 #include "../Communication/Handlers/ValidationHandler.h"
 #include "../Communication/Handlers/CodeBeautifierHandler.h"
-#include "../Configuration/FDAConfig.h"
-#include "../Utils/Logger.h"
+#include "../Communication/Handlers/FIExecutionHandler.h"
 
 Worker::Worker()
 {
@@ -16,6 +17,7 @@ Worker::Worker()
     tokenHandler = std::make_unique<TokenHandler>(client.get());
     validationHandler = std::make_unique<ValidationHandler>(client.get());
     codeBeautifierHandler = std::make_unique<CodeBeautifierHandler>(client.get());
+    fiExecutionHandler = std::make_unique<FIExecutionHandler>(client.get());
 }
 
 Worker::~Worker() = default;
@@ -101,7 +103,7 @@ void Worker::run()
 
             try
             {
-                validationHandler->validateScript(task.data);
+                validationHandler->validateScript(std::get<std::string>(task.data));
             }
             catch (const std::exception& e)
             {
@@ -117,7 +119,8 @@ void Worker::run()
 
             try
             {
-                codeBeautifierHandler->beautify(task.data);
+                const BeautifyData& data = std::get<BeautifyData>(task.data);
+                codeBeautifierHandler->beautify(data);
             }
             catch (const std::exception& e)
             {
@@ -127,9 +130,36 @@ void Worker::run()
             break;
         }
 
-        case TaskType::GET_SUGGESTIONS:
+        case TaskType::GENERATE_MENU_SOURCE:
         {
-            Logger::info("[WORKER] GET_SUGGESTIONS task");
+            Logger::info("[WORKER] GENERATE_MENU_SOURCE task");
+
+            try
+            {
+                // TODO
+            }
+            catch (const std::exception& e)
+            {
+                Logger::error("[WORKER] Exception : " + std::string(e.what()));
+            }
+                
+            break;
+        }
+
+        case TaskType::EXECUTE_FI_REQUEST:
+        {
+            Logger::info("[WORKER] EXECUTE_FI_REQUEST task");
+            
+            try
+            {
+                const FIRequestData& data = std::get<FIRequestData>(task.data);
+                fiExecutionHandler->executeRequest(data);
+            }
+            catch (const std::exception& e)
+            {
+                Logger::error("[WORKER] Exception : " + std::string(e.what()));
+            }
+
             break;
         }
 

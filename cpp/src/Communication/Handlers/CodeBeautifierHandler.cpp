@@ -3,6 +3,7 @@
 #include "../../Utils/Logger.h"
 #include "../../nlohmann/json.hpp"
 #include "../../Features/ScintillaHelper.h"
+#include "../../PluginDefinition.h"
 
 using json = nlohmann::json;
 
@@ -11,14 +12,16 @@ CodeBeautifierHandler::CodeBeautifierHandler(FDAClient* client)
 {
 }
 
-void CodeBeautifierHandler::beautify(const std::string& filePath)
+void CodeBeautifierHandler::beautify(const BeautifyData& data)
 {
     Logger::info("[BEAUTIFY] Preparing request");
 
     json request;
 
     request["type"] = "BEAUTIFY_CODE";
-    request["filePath"] = filePath;
+    request["contentType"] = data.contentType;
+    request["content"] = data.content;
+    hasSelection = data.hasSelection;
 
     std::string response;
 
@@ -43,7 +46,7 @@ void CodeBeautifierHandler::parse(const std::string& response)
         if (result["STATUS"] != "SUCCESS") {
 
             MessageBox(
-                NULL,
+                nppData._nppHandle,
                 TEXT("Unexpected Error Occured."),
                 TEXT("Finacle Dev Assist"),
                 MB_OK | MB_ICONINFORMATION
@@ -53,7 +56,16 @@ void CodeBeautifierHandler::parse(const std::string& response)
             return;
         }
 
-        ScintillaHelper::replaceCurrentDocument(result["beautifiedCode"]);
+        std::string beautifiedCode = result["beautifiedCode"];
+
+        if (hasSelection)
+        {
+            ScintillaHelper::replaceSelectedContent(beautifiedCode);
+        }
+        else
+        {
+            ScintillaHelper::replaceCurrentDocument(beautifiedCode);
+        }
         
         Logger::info("[BEAUTIFY] Code Beautified successfully");
     }
