@@ -1,6 +1,8 @@
 package com.sandy.fda.beautifier;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.sandy.fda.models.beautifier.BeautifyData;
 import com.sandy.fda.parser.TokenParser;
 import com.sandy.fda.parser.Tokenizer;
 
@@ -12,9 +14,10 @@ public class Beautifier {
         this.factory = new BeautifierFactory(tokenParser, tokenizer);
     }
 
-    public JsonObject beautifyCode(String filePath) throws Exception {
-        ICodeBeautifier formatter = factory.getFormatterForFile(filePath);
-        String beautifiedCode = formatter.beautify(filePath);
+    public JsonObject beautifyCode(JsonObject req) throws Exception {
+        BeautifyData beautifyData = new Gson().fromJson(req, BeautifyData.class);
+        ICodeBeautifier formatter = factory.getFormatter(beautifyData);
+        String beautifiedCode = formatter.beautify(beautifyData);
         return convertToJsonObject(beautifiedCode);
     }
 

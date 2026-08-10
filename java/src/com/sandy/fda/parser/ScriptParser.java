@@ -1,15 +1,16 @@
 package com.sandy.fda.parser;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sandy.fda.models.Line;
-import com.sandy.fda.models.Line.Builder;
-import com.sandy.fda.models.Token;
-import com.sandy.fda.models.enums.LineType;
+import com.sandy.fda.models.validator.Line;
+import com.sandy.fda.models.validator.Token;
+import com.sandy.fda.models.validator.Line.Builder;
+import com.sandy.fda.models.validator.enums.LineType;
 import com.sandy.fda.utils.FDAUtils;
 
 public class ScriptParser {
@@ -26,9 +27,17 @@ public class ScriptParser {
         this.tokenParser = tokenParser;
     }
 
-    public List<Line> parse(String filePath) throws Exception {
+    public List<Line> parse(String content, boolean isFilePath) throws Exception {
 
-        List<String> allLines = FDAUtils.getAllLines(filePath);
+        List<String> allLines = null;
+
+        if (isFilePath) {
+            allLines = FDAUtils.getAllLines(content);
+        } else {
+            allLines = new ArrayList<>(
+                    Arrays.asList(
+                            content.split("\\r\\n|\\r|\\n", -1)));
+        }
 
         List<Line> scrLines = new ArrayList<>();
 

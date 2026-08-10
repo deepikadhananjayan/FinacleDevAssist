@@ -4,9 +4,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-import com.sandy.fda.models.Issue;
-import com.sandy.fda.models.Line;
-import com.sandy.fda.models.enums.IssueType;
+import com.sandy.fda.models.validator.Issue;
+import com.sandy.fda.models.validator.Line;
+import com.sandy.fda.models.validator.enums.IssueType;
 
 public class FDAUtils {
 

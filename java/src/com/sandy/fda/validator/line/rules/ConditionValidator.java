@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.sandy.fda.models.Issue;
-import com.sandy.fda.models.Line;
-import com.sandy.fda.models.ScriptInfo;
-import com.sandy.fda.models.SubToken;
-import com.sandy.fda.models.enums.IssueType;
-import com.sandy.fda.models.enums.State;
-import com.sandy.fda.models.enums.TokenType;
+import com.sandy.fda.models.validator.Issue;
+import com.sandy.fda.models.validator.Line;
+import com.sandy.fda.models.validator.ScriptInfo;
+import com.sandy.fda.models.validator.SubToken;
+import com.sandy.fda.models.validator.enums.IssueType;
+import com.sandy.fda.models.validator.enums.State;
+import com.sandy.fda.models.validator.enums.TokenType;
 import com.sandy.fda.utils.FDAIssueMessage;
 
 @SuppressWarnings("null")

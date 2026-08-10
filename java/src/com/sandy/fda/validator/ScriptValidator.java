@@ -4,10 +4,10 @@ import java.util.List;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.sandy.fda.models.Issue;
-import com.sandy.fda.models.Line;
-import com.sandy.fda.models.ScriptInfo;
-import com.sandy.fda.models.ScriptInfo.Builder;
+import com.sandy.fda.models.validator.Issue;
+import com.sandy.fda.models.validator.Line;
+import com.sandy.fda.models.validator.ScriptInfo;
+import com.sandy.fda.models.validator.ScriptInfo.Builder;
 import com.sandy.fda.parser.ScriptParser;
 import com.sandy.fda.parser.TokenParser;
 import com.sandy.fda.parser.Tokenizer;
@@ -28,7 +28,7 @@ public class ScriptValidator {
 
     public JsonObject validate(String filePath) throws Exception {
 
-        List<Line> scrLines = scriptParser.parse(filePath);
+        List<Line> scrLines = scriptParser.parse(filePath, true);
 
         Builder builder = new ScriptInfo.Builder();
         builder.setAllLines(scrLines);
@@ -71,8 +71,6 @@ public class ScriptValidator {
         response.add("warnings", warnings);
         response.addProperty("total_errors", errors.size());
         response.addProperty("total_warnings", warnings.size());
-
-        System.out.println(response);
 
         return response;
     }

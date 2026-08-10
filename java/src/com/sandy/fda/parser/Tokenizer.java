@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.sandy.fda.models.Issue;
-import com.sandy.fda.models.Line;
-import com.sandy.fda.models.SubToken;
-import com.sandy.fda.models.Token;
-import com.sandy.fda.models.enums.IssueType;
-import com.sandy.fda.models.enums.TokenType;
+import com.sandy.fda.models.validator.Issue;
+import com.sandy.fda.models.validator.Line;
+import com.sandy.fda.models.validator.SubToken;
+import com.sandy.fda.models.validator.Token;
+import com.sandy.fda.models.validator.enums.IssueType;
+import com.sandy.fda.models.validator.enums.TokenType;
 import com.sandy.fda.utils.FDAIssueMessage;
 
 import com.sandy.fda.utils.FDAUtils;
@@ -41,7 +41,6 @@ public class Tokenizer {
         this.tokenParser = tokenParser;
     }
 
-    @SuppressWarnings("null")
     public Object tokenize(Line line) throws Exception {
 
         String lineData = line.getLineContent().trim();

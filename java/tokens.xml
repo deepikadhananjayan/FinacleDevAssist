@@ -66,6 +66,11 @@
 				<ParamInput>VALUE!STRING</ParamInput>
 			</ParamInputs>
 		</Function>
+		<Function name="STRLEN()">
+			<ParamInputs>
+				<ParamInput>VALUE!STRING</ParamInput>
+			</ParamInputs>
+		</Function>
 		<Function name="MID$(,,)">
 			<ParamInputs>
 				<ParamInput>VALUE!STRING</ParamInput>

@@ -10,6 +10,7 @@ import java.net.Socket;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.sandy.fda.beautifier.Beautifier;
+import com.sandy.fda.fi.FinacleInterfaceHandler;
 import com.sandy.fda.parser.TokenParser;
 import com.sandy.fda.parser.Tokenizer;
 import com.sandy.fda.utils.FDAConstants;
@@ -22,12 +23,19 @@ public class FDASocket {
     private Tokenizer tokenizer;
     private ScriptValidator scriptValidator;
     private Beautifier beautifier;
+    private FinacleInterfaceHandler finacleInterfaceHandler;
 
     public FDASocket() {
+        System.out.println("FDASocket constructor");
         this.tokenParser = new TokenParser();
         this.tokenizer = new Tokenizer(tokenParser);
         this.scriptValidator = new ScriptValidator(tokenParser, tokenizer);
         this.beautifier = new Beautifier(tokenParser, tokenizer);
+        try {
+            this.finacleInterfaceHandler = new FinacleInterfaceHandler(beautifier);
+        } catch (Exception e) {
+            FDALogger.error(e);
+        }
     }
 
     public void initSocket() {
@@ -35,12 +43,12 @@ public class FDASocket {
         ServerSocket server = null;
 
         try {
-
+            String sPort = FDAConstants.getProperties().get("java.port");
             try {
-                server = new ServerSocket(FDAConstants.getPort());
+                server = new ServerSocket(Integer.parseInt(sPort));
             } catch (BindException e) {
                 FDALogger.info(
-                        "Port [" + FDAConstants.getPort() + "] unavailable, using dynamic port (Letting OS Decide)");
+                        "Port [" + sPort + "] unavailable, using dynamic port (Letting OS Decide)");
 
                 server = new ServerSocket(0);
                 FDAConstants.updatePortInProperties(server.getLocalPort());
@@ -107,8 +115,16 @@ public class FDASocket {
                             break;
 
                         case "BEAUTIFY_CODE":
-                            filePath = req.get("filePath").getAsString();
-                            response = beautifier.beautifyCode(filePath);
+                            req.remove("type");
+                            response = beautifier.beautifyCode(req);
+                            break;
+
+                        case "GENERATE_MENU_SOURCE":
+                            break;
+
+                        case "EXECUTE_FI_REQUEST":
+                            req.remove("type");
+                            response = finacleInterfaceHandler.execute(req);
                             break;
 
                         case "GET_SUGGESTIONS":
@@ -137,7 +153,9 @@ public class FDASocket {
                     response.addProperty("STATUS", "EXCEPTION");
                     response.addProperty("EXCEPTION", excpMsg);
                 }
-
+                
+                FDALogger.info(response.toString());
+                
                 out.println(response.toString());
                 out.flush();
 

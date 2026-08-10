@@ -1,7 +1,7 @@
 package com.sandy.fda.beautifier;
 
-public interface ICodeBeautifier {
-    String beautify(String filePath) throws Exception;
+import com.sandy.fda.models.beautifier.BeautifyData;
 
-    String getExtension();
+public interface ICodeBeautifier {
+    String beautify(BeautifyData beautifyData) throws Exception;
 }

@@ -3,11 +3,12 @@ package com.sandy.fda.beautifier.languages;
 import java.util.List;
 
 import com.sandy.fda.beautifier.ICodeBeautifier;
-import com.sandy.fda.models.Issue;
-import com.sandy.fda.models.Line;
-import com.sandy.fda.models.SubToken;
-import com.sandy.fda.models.enums.LineType;
-import com.sandy.fda.models.enums.TokenType;
+import com.sandy.fda.models.beautifier.BeautifyData;
+import com.sandy.fda.models.validator.Issue;
+import com.sandy.fda.models.validator.Line;
+import com.sandy.fda.models.validator.SubToken;
+import com.sandy.fda.models.validator.enums.LineType;
+import com.sandy.fda.models.validator.enums.TokenType;
 import com.sandy.fda.parser.ScriptParser;
 import com.sandy.fda.parser.TokenParser;
 import com.sandy.fda.parser.Tokenizer;
@@ -23,8 +24,8 @@ public class ScriptBeautifier implements ICodeBeautifier {
     }
 
     @Override
-    public String beautify(String filePath) throws Exception {
-        List<Line> scrLines = scriptParser.parse(filePath);
+    public String beautify(BeautifyData beautifyData) throws Exception {
+        List<Line> scrLines = scriptParser.parse(beautifyData.getContent(), false);
         return beautifyIt(scrLines);
     }
 
@@ -141,10 +142,5 @@ public class ScriptBeautifier implements ICodeBeautifier {
         }
 
         builder.append(lineSeparator);
-    }
-
-    @Override
-    public String getExtension() {
-        return ".scr";
     }
 }

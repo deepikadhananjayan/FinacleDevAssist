@@ -3,18 +3,23 @@ package com.sandy.fda.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.util.HashMap;
 import java.util.Properties;
 
 public class FDAConstants {
 
-    private static String xmlPath;
-    private static int port;
-    private static File propFile;
+    private static HashMap<String, String> properties;
+
+    private static Properties props;
 
     private static boolean loaded = false;
 
     private FDAConstants() {
+    }
+
+    static {
+        props = new Properties();
+        properties = new HashMap<>();
     }
 
     public static boolean load() {
@@ -35,7 +40,7 @@ public class FDAConstants {
 
             //File appDirectory = new File("D:\\Santhosh\\Personal Learning\\Finacle Validator\\FDA\\java\\");
 
-            propFile = new File(appDirectory, "fdaplugin.properties");
+            File propFile = new File(appDirectory, "fdaplugin.properties");
 
             if (!propFile.exists()) {
                 FDALogger.error(
@@ -46,20 +51,11 @@ public class FDAConstants {
                 return false;
             }
 
-            Properties props = new Properties();
-
             try (FileInputStream fis = new FileInputStream(propFile)) {
                 props.load(fis);
             }
-
-            String portValue = props.getProperty("java.port");
-
-            if (portValue == null) {
-                throw new Exception(
-                        "[java.port] missing in properties");
-            }
-
-            port = Integer.parseInt(portValue);
+            
+            properties.put("PROP_FILE_LOCATION", propFile.getAbsolutePath());
 
             File tokenXml = new File(appDirectory, "tokens.xml");
 
@@ -68,7 +64,14 @@ public class FDAConstants {
                         "tokens.xml file is missing");
             }
 
-            xmlPath = tokenXml.getAbsolutePath();
+            String xmlPath = tokenXml.getAbsolutePath();
+
+            properties.put("TOKEN_XML_PATH", xmlPath);
+
+            for (String key : props.stringPropertyNames()) {
+                String value = props.getProperty(key);
+                properties.put(key, value);
+            }
 
             loaded = true;
 
@@ -83,24 +86,10 @@ public class FDAConstants {
     }
 
     public static void updatePortInProperties(int actualPort) throws Exception {
-        Properties props = new Properties();
-
-        try (FileInputStream fis = new FileInputStream(propFile)) {
-            props.load(fis);
-        }
-
         props.setProperty("java.port", String.valueOf(actualPort));
-
-        try (FileOutputStream fos = new FileOutputStream(propFile)) {
-            props.store(fos, "Updated by FDA Java Server");
-        }
     }
 
-    public static String getXmlPath() {
-        return xmlPath;
-    }
-
-    public static int getPort() {
-        return port;
+    public static HashMap<String, String> getProperties() {
+        return properties;
     }
 }

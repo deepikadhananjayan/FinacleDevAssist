@@ -20,12 +20,14 @@ import org.w3c.dom.NodeList;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.sandy.fda.models.Token;
-import com.sandy.fda.models.Token.Builder;
-import com.sandy.fda.models.enums.TokenType;
+import com.sandy.fda.models.validator.Token;
+import com.sandy.fda.models.validator.Token.Builder;
+import com.sandy.fda.models.validator.enums.TokenType;
 import com.sandy.fda.utils.FDAConstants;
 
 public class TokenParser {
+    private String xmlPath;
+    
     private List<Token> allTokens;
 
     private Map<String, Token> allKeywords;
@@ -42,6 +44,7 @@ public class TokenParser {
                     "<=")));
 
     public TokenParser() {
+        this.xmlPath = FDAConstants.getProperties().get("TOKEN_XML_PATH");
         this.allKeywords = new HashMap<>();
         this.allUserhooks = new HashMap<>();
         this.allFunctions = new HashMap<>();
@@ -49,28 +52,28 @@ public class TokenParser {
 
     public JsonObject getKeywordsAndUserhooks() throws Exception {
         if (allTokens == null) {
-            allTokens = parse(FDAConstants.getXmlPath());
+            allTokens = parse(xmlPath);
         }
         return convertToJsonResponse();
     }
 
     public Map<String, Token> getKeywordMap() throws Exception {
         if (allTokens == null) {
-            allTokens = parse(FDAConstants.getXmlPath());
+            allTokens = parse(xmlPath);
         }
         return allKeywords;
     }
 
     public Map<String, Token> getFunctionMap() throws Exception {
         if (allTokens == null) {
-            allTokens = parse(FDAConstants.getXmlPath());
+            allTokens = parse(xmlPath);
         }
         return allFunctions;
     }
 
     public Map<String, Token> getUserhookMap() throws Exception {
         if (allTokens == null) {
-            allTokens = parse(FDAConstants.getXmlPath());
+            allTokens = parse(xmlPath);
         }
         return allUserhooks;
     }

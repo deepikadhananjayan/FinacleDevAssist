@@ -4,12 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sandy.fda.models.Issue;
-import com.sandy.fda.models.Line;
-import com.sandy.fda.models.ScriptInfo;
-import com.sandy.fda.models.SubToken;
-import com.sandy.fda.models.enums.IssueType;
-import com.sandy.fda.models.enums.LineType;
+import com.sandy.fda.models.validator.Issue;
+import com.sandy.fda.models.validator.Line;
+import com.sandy.fda.models.validator.ScriptInfo;
+import com.sandy.fda.models.validator.SubToken;
+import com.sandy.fda.models.validator.enums.IssueType;
+import com.sandy.fda.models.validator.enums.LineType;
 import com.sandy.fda.parser.Tokenizer;
 import com.sandy.fda.utils.FDAIssueMessage;
 import com.sandy.fda.utils.FDAUtils;

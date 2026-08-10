@@ -8,10 +8,7 @@ public class FinacleDevAssist {
 
     private static final FinacleDevAssist INSTANCE = new FinacleDevAssist();
 
-    private FDASocket fdaSocket;
-
     private FinacleDevAssist() {
-        fdaSocket = new FDASocket();
     }
 
     public static FinacleDevAssist getInstance() {
@@ -19,11 +16,17 @@ public class FinacleDevAssist {
     }
 
     public void start() {
-        FDALogger.initLogger();
+        if (!FDALogger.initLogger()) {
+            System.err.println(
+                    "Logger initialization failed. Continuing application startup.");
+        }
 
-        FDAConstants.load();
+        if (!FDAConstants.load()) {
+            throw new IllegalStateException(
+                    "Application startup failed: Properties could not be loaded. Please verify that the properties file exists and is accessible.");
+        }
 
-        fdaSocket.initSocket();
+        new FDASocket().initSocket();
     }
 
     public static void main(String[] args) {
