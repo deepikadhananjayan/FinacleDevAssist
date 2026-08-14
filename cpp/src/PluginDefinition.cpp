@@ -68,8 +68,11 @@ void commandMenuInit()
     setCommand(1, TEXT("Validate Script"), validateScript, NULL, true);
     setCommand(2, TEXT("Beautify Code"), beautifyCode, NULL, true);
     setCommand(3, TEXT("Get FI Response"), sendFIRequest, NULL, true);
-    setCommand(4, TEXT("Shutdown"), shutdownFDA, NULL, true);
-    setCommand(5, TEXT("About"), aboutFDA, NULL, true);
+    setCommand(4, TEXT("Generate Custom Menu"), generateCustomMenu, NULL, true);
+    setCommand(5, TEXT("Deploy Custom Menu"), deployCustomMenu, NULL, true);
+    setCommand(6, TEXT("View/Edit Properties"), editProperties, NULL, true);
+    setCommand(7, TEXT("Shutdown"), shutdownFDA, NULL, true);
+    setCommand(8, TEXT("About"), aboutFDA, NULL, true);
 }
 
 //
@@ -143,6 +146,21 @@ void beautifyCode()
 void sendFIRequest()
 {
     FDAApplication::handleFIExecution();
+}
+
+void generateCustomMenu()
+{
+    FDAApplication::handleGenerateCustomMenu();
+}
+
+void deployCustomMenu()
+{
+    FDAApplication::handleDeployCustomMenu();
+}
+
+void editProperties()
+{
+    FDAApplication::handleEditProperties();
 }
 
 void shutdownFDA()

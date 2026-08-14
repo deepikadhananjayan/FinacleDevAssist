@@ -9,8 +9,10 @@
 #include "../Models/BeautifyData.h"
 #include "../Dialogs/BeautifyLanguageDialog.h"
 #include "../Dialogs/FIRequestDialog.h"
+#include "../Dialogs/PropertiesDialog.h"
 #include "../DockingFeature/resource.h"
 #include "../Models/FIRequestData.h"
+#include "../Configuration/FDAConfig.h"
 
 #pragma comment(lib, "Version.lib")
 
@@ -307,22 +309,32 @@ void FDAApplication::handleBeautifyCode()
     worker->submit({ TaskType::BEAUTIFY_CODE, beautifyData });
 }
 
-void FDAApplication::handleGenerateMenuSource()
+void FDAApplication::handleGenerateCustomMenu()
 {
-    if (state != FDAApplicationState::READY)
-    {
-        MessageBox(
-            nppData._nppHandle,
-            TEXT("FDA Plugin is not initialized."),
-            TEXT("Finacle Dev Assist"),
-            MB_OK | MB_ICONINFORMATION
-        );
-        return;
-    }
+    //if (state != FDAApplicationState::READY)
+    //{
+    //    MessageBox(
+    //        nppData._nppHandle,
+    //        TEXT("FDA Plugin is not initialized."),
+    //        TEXT("Finacle Dev Assist"),
+    //        MB_OK | MB_ICONINFORMATION
+    //    );
+    //    return;
+    //}
 
     MessageBox(
         nppData._nppHandle,
-        TEXT("Generate MenuSource Feature is Under Development!."),
+        TEXT("Generate Custom Menu Feature is Under Development!."),
+        TEXT("Finacle Dev Assist"),
+        MB_OK | MB_ICONINFORMATION
+    );
+}
+
+void FDAApplication::handleDeployCustomMenu()
+{
+    MessageBox(
+        nppData._nppHandle,
+        TEXT("Deploy Source Feature is Under Development!."),
         TEXT("Finacle Dev Assist"),
         MB_OK | MB_ICONINFORMATION
     );
@@ -335,6 +347,17 @@ void FDAApplication::handleFIExecution()
         MessageBox(
             nppData._nppHandle,
             TEXT("FDA Plugin is not initialized."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONINFORMATION
+        );
+        return;
+    }
+
+    if (FDAConfig::getFIEnvironments().size() == 0)
+    {
+        MessageBox(
+            nppData._nppHandle,
+            TEXT("No FI Environments configured. Please configure an environment to use this feature."),
             TEXT("Finacle Dev Assist"),
             MB_OK | MB_ICONINFORMATION
         );
@@ -357,6 +380,27 @@ void FDAApplication::handleFIExecution()
     fiRequestData.body = ScintillaHelper::getSelectedOrAllText();
     
     worker->submit({ TaskType::EXECUTE_FI_REQUEST, fiRequestData });
+}
+
+void FDAApplication::handleEditProperties() {
+
+    if (state != FDAApplicationState::READY)
+    {
+        MessageBox(
+            nppData._nppHandle,
+            TEXT("FDA Plugin is not initialized."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONINFORMATION
+        );
+        return;
+    }
+
+    DialogBox(
+        moduleHandle,
+        MAKEINTRESOURCE(IDD_FDA_PROPERTIES_DIALOG),
+        nppData._nppHandle,
+        PropertiesDialogProc
+    );
 }
 
 void FDAApplication::aboutPlugin()

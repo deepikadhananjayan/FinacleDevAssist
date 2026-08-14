@@ -29,7 +29,7 @@
 #define IDD_BEAUTIFY_LANGUAGE_DIALOG  5001
 #define IDC_BEAUTIFY_LANGUAGE         5002
 #define IDC_BEAUTIFY_LANGUAGE_LABEL   5003
-#define IDI_FDA_SMALL 5004
+#define IDI_FDA_SMALL                 5004
 
 #define IDD_FI_REQUEST_DIALOG          5005
 
@@ -45,5 +45,16 @@
 
 #define IDC_FI_CONTENT_TYPE_CUSTOM     5014
 #define IDC_FI_ACCEPT_CUSTOM           5015
+
+#define IDC_PROPERTIES_LIST          5016
+#define IDC_PROPERTIES_ADD           5017
+#define IDC_PROPERTIES_EDIT          5018
+#define IDC_PROPERTIES_DELETE        5019
+#define IDD_FDA_PROPERTIES_DIALOG    5020
+#define IDD_FDA_PROPERTY_EDIT_DIALOG 5021
+#define IDC_PROP_KEY_LABEL           5022
+#define IDC_PROP_KEY                 5023
+#define IDC_PROP_VALUE_LABEL         5024
+#define IDC_PROP_VALUE               5025
 #endif // RESOURCE_H
 

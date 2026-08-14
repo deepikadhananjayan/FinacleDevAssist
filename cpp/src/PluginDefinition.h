@@ -38,7 +38,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT("Finacle Dev Assist");
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 6;
+const int nbFunc = 9;
 
 //
 // Initialization of your plugin data
@@ -78,6 +78,9 @@ void initializeFDA();
 void validateScript();
 void beautifyCode();
 void sendFIRequest();
+void generateCustomMenu();
+void deployCustomMenu();
+void editProperties();
 void shutdownFDA();
 void aboutFDA();
 

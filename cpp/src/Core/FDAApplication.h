@@ -18,8 +18,10 @@ public:
     static void handleValidateScript();
     static std::string selectBeautifyContentType();
     static void handleBeautifyCode();
-    static void handleGenerateMenuSource();
+    static void handleGenerateCustomMenu();
+    static void handleDeployCustomMenu();
     static void handleFIExecution();
+    static void handleEditProperties();
     static std::string getPluginVersion();
     static void aboutPlugin();
     static void updateState(FDAApplicationState currState);
