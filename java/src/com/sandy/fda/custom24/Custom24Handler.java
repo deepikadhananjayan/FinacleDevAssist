@@ -19,7 +19,7 @@ public class Custom24Handler {
         JsonObject response = new JsonObject();
         response.addProperty("STATUS", "SUCCESS");
         
-        for (FileType type : menuDetails.getGenerateDesign()) {
+        for (FileType type : menuDetails.generateDesign()) {
             IFileGenerator fileGenerator = fileFactory.getFileGenerator(type);
             String typeStatus = fileGenerator.generate(menuDetails);
             response.addProperty(type.toString(), typeStatus);
