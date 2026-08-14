@@ -9,10 +9,11 @@ import java.util.Properties;
 public class FDAConstants {
 
     private static HashMap<String, String> properties;
-
+    private static File appDirectory;
+    private static File propFile;
     private static Properties props;
-
     private static boolean loaded = false;
+    private static Long oldPropFileSize;
 
     private FDAConstants() {
     }
@@ -23,24 +24,34 @@ public class FDAConstants {
     }
 
     public static boolean load() {
-
-        if (loaded) {
-            return true;
-        }
-
         try {
-            String jarPath = FDAConstants.class
-                    .getProtectionDomain()
-                    .getCodeSource()
-                    .getLocation()
-                    .toURI()
-                    .getPath();
+            if (!loaded) {
+                String jarPath = FDAConstants.class
+                        .getProtectionDomain()
+                        .getCodeSource()
+                        .getLocation()
+                        .toURI()
+                        .getPath();
 
-            File appDirectory = new File(jarPath).getParentFile();
+                appDirectory = new File(jarPath).getParentFile();
+                //appDirectory = new File("D:\\Santhosh\\Personal Learning\\Finacle Validator\\FDA\\java\\");
+                propFile = new File(appDirectory, "fdaplugin.properties");
 
-            //File appDirectory = new File("D:\\Santhosh\\Personal Learning\\Finacle Validator\\FDA\\java\\");
+                oldPropFileSize = getPropertiesFileSize();
 
-            File propFile = new File(appDirectory, "fdaplugin.properties");
+                properties.put("PROP_FILE_LOCATION", propFile.getAbsolutePath());
+
+                File tokenXml = new File(appDirectory, "tokens.xml");
+
+                if (!tokenXml.exists()) {
+                    throw new FileNotFoundException(
+                            "tokens.xml file is missing");
+                }
+                String xmlPath = tokenXml.getAbsolutePath();
+
+                properties.put("TOKEN_XML_PATH", xmlPath);
+                loaded = true;
+            }
 
             if (!propFile.exists()) {
                 FDALogger.error(
@@ -55,25 +66,10 @@ public class FDAConstants {
                 props.load(fis);
             }
             
-            properties.put("PROP_FILE_LOCATION", propFile.getAbsolutePath());
-
-            File tokenXml = new File(appDirectory, "tokens.xml");
-
-            if (!tokenXml.exists()) {
-                throw new FileNotFoundException(
-                        "tokens.xml file is missing");
-            }
-
-            String xmlPath = tokenXml.getAbsolutePath();
-
-            properties.put("TOKEN_XML_PATH", xmlPath);
-
             for (String key : props.stringPropertyNames()) {
                 String value = props.getProperty(key);
                 properties.put(key, value);
             }
-
-            loaded = true;
 
             FDALogger.info(
                     "FDA Constants loaded successfully");
@@ -83,6 +79,14 @@ public class FDAConstants {
             FDALogger.error(e);
             return false;
         }
+    }
+
+    public static Long getPropertiesFileSize(){
+        return propFile.length();
+    }
+    
+    public static Long getOldPropFileSize() {
+        return oldPropFileSize;
     }
 
     public static void updatePortInProperties(int actualPort) throws Exception {
