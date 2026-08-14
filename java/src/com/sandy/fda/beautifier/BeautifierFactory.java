@@ -27,7 +27,7 @@ public class BeautifierFactory {
     }
 
     public ICodeBeautifier getFormatter(BeautifyData beautifyData) {
-        ICodeBeautifier beautifier = formatters.get(beautifyData.getContentType());
+        ICodeBeautifier beautifier = formatters.getOrDefault(beautifyData.getContentType(),null);
         if (beautifier == null)
             throw new IllegalArgumentException("No formatter found for type: " + beautifyData.getContentType());
 
