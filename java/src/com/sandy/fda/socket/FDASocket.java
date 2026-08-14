@@ -10,6 +10,7 @@ import java.net.Socket;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.sandy.fda.beautifier.Beautifier;
+import com.sandy.fda.custom24.Custom24Handler;
 import com.sandy.fda.fi.FinacleInterfaceHandler;
 import com.sandy.fda.parser.TokenParser;
 import com.sandy.fda.parser.Tokenizer;
@@ -20,14 +21,15 @@ import com.sandy.fda.validator.ScriptValidator;
 public class FDASocket {
 
     private TokenParser tokenParser;
+    private Custom24Handler custom24Handler;
     private Tokenizer tokenizer;
     private ScriptValidator scriptValidator;
     private Beautifier beautifier;
     private FinacleInterfaceHandler finacleInterfaceHandler;
 
     public FDASocket() {
-        System.out.println("FDASocket constructor");
         this.tokenParser = new TokenParser();
+        this.custom24Handler = new Custom24Handler();
         this.tokenizer = new Tokenizer(tokenParser);
         this.scriptValidator = new ScriptValidator(tokenParser, tokenizer);
         this.beautifier = new Beautifier(tokenParser, tokenizer);
@@ -43,12 +45,17 @@ public class FDASocket {
         ServerSocket server = null;
 
         try {
-            String sPort = FDAConstants.getProperties().get("java.port");
+            int port = Integer.parseInt(FDAConstants.getProperties().get("java.port"));
             try {
-                server = new ServerSocket(Integer.parseInt(sPort));
+                server = new ServerSocket(port);
+                if (port == 0) {
+                    FDALogger.info(
+                            "User Assigned [" + port + "] in Properties, using dynamic port (Letting OS Decide)");
+                    FDAConstants.updatePortInProperties(server.getLocalPort());
+                }
             } catch (BindException e) {
                 FDALogger.info(
-                        "Port [" + sPort + "] unavailable, using dynamic port (Letting OS Decide)");
+                        "Port [" + port + "] unavailable, using dynamic port (Letting OS Decide)");
 
                 server = new ServerSocket(0);
                 FDAConstants.updatePortInProperties(server.getLocalPort());
@@ -94,11 +101,9 @@ public class FDASocket {
 
             while (!shutdown && (raw = in.readLine()) != null) {
 
-                FDALogger.info("Received: " + raw);
-
                 JsonObject req = gson.fromJson(raw, JsonObject.class);
 
-                String type = req.get("type").getAsString();
+                String type = req.remove("type").getAsString();
 
                 JsonObject response = new JsonObject();
 
@@ -115,16 +120,23 @@ public class FDASocket {
                             break;
 
                         case "BEAUTIFY_CODE":
-                            req.remove("type");
                             response = beautifier.beautifyCode(req);
                             break;
 
-                        case "GENERATE_MENU_SOURCE":
+                        case "EXECUTE_FI_REQUEST":
+                            if (FDAConstants.getOldPropFileSize() != FDAConstants.getPropertiesFileSize()) {
+                                if (!FDAConstants.load()) {
+                                    throw new IllegalStateException("Failed to Update Properties");
+                                }
+                            }
+                            response = finacleInterfaceHandler.execute(req);
                             break;
 
-                        case "EXECUTE_FI_REQUEST":
-                            req.remove("type");
-                            response = finacleInterfaceHandler.execute(req);
+                        case "GENERATE_CUSTOM_MENU":
+                            response = custom24Handler.generateCustomMenu(req);
+                            break;
+                        
+                        case "DEPLOY_CUSTOM_MENU":
                             break;
 
                         case "GET_SUGGESTIONS":
@@ -153,9 +165,9 @@ public class FDASocket {
                     response.addProperty("STATUS", "EXCEPTION");
                     response.addProperty("EXCEPTION", excpMsg);
                 }
-                
+
                 FDALogger.info(response.toString());
-                
+
                 out.println(response.toString());
                 out.flush();
 
