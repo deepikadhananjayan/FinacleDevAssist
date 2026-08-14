@@ -21,6 +21,7 @@ public enum LineType {
     FUNCTION,
     ENDFUNCTION,
     ASSIGNMENT,
+    DYNAMIC_ASSIGNMENT,
     COMMENTLINE,
     EMPTYLINE,
     BLOCK,

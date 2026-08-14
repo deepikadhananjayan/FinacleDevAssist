@@ -18,8 +18,9 @@ public class ScriptParser {
     private TokenParser tokenParser;
     private Map<String, Token> knownFunctions = null;
 
-    private static final Pattern ASSIGNMENT_PATTERN = Pattern.compile(
-            "^\\s*[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*){0,2}\\s*=\\s*.+$");
+    private static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*){0,2}\\s*=\\s*.+$");
+
+    private static final Pattern DYNAMIC_COMPONENT_PATTERN = Pattern.compile("\\(\"[^\"]+\"\\s*\\+\\s*[^)]+\\)");
 
     private static final Pattern ASSIGNMENT_OPERATOR = Pattern.compile("(?<![<>=!])=(?![=])");
 
@@ -90,6 +91,8 @@ public class ScriptParser {
                 builder.setLineType(LineType.USERHOOK);
             else if (lineContent.matches(".*FUNC_.*\\(.*\\).*") || isBuiltInFunction(lineContent))
                 builder.setLineType(LineType.FUNCTION_CALL);
+            else if (isDynamicAssignment(lineContent))
+                builder.setLineType(LineType.DYNAMIC_ASSIGNMENT);
             else if (isAssignment(lineContent))
                 builder.setLineType(LineType.ASSIGNMENT);
             else if (lineContent.matches("^GOTO\\b.*"))
@@ -120,6 +123,23 @@ public class ScriptParser {
 
         return count == 1;
     }
+
+    private boolean isDynamicAssignment(String lineContent) {
+
+    Matcher operator = ASSIGNMENT_OPERATOR.matcher(lineContent);
+
+    int count = 0;
+
+    while (operator.find()) {
+        count++;
+    }
+
+    if (count != 1) {
+        return false;
+    }
+
+    return DYNAMIC_COMPONENT_PATTERN.matcher(lineContent).find();
+}
 
     private boolean isBuiltInFunction(String lineContent) throws Exception {
 

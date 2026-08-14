@@ -251,6 +251,9 @@ public class SyntaxValidator {
                     //Assignment Logic
                     break;
                 }
+                case DYNAMIC_ASSIGNMENT:{
+                    break;
+                }
                 case START:
                 case END:
                 case TRACEON:

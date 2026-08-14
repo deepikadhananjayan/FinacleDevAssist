@@ -19,23 +19,23 @@ public class Tokenizer {
     private TokenParser tokenParser;
     private Map<String, Token> knownFunctions = null;
 
-    public final String START = "<--START";
-    public final String END = "END-->";
-    public final String TRACE_ON = "TRACE ON";
-    public final String TRACE_OFF = "TRACE OFF";
-    public final String AND = "AND";
-    public final String OR = "OR";
-    public final String LIBNAME = "LIBNAME";
-    public final String IMPORT = "IMPORT";
-    public final String GOTO = "GOTO";
-    public final String GOSUB = "GOSUB";
-    public final String IF = "IF";
-    public final String ELSE = "ELSE";
-    public final String THEN = "THEN";
-    public final String ENDIF = "ENDIF";
-    public final String WHILE = "WHILE";
-    public final String DO = "DO";
-    public final String EXITSCRIPT = "EXITSCRIPT";
+    private final String START = "<--START";
+    private final String END = "END-->";
+    private final String TRACE_ON = "TRACE ON";
+    private final String TRACE_OFF = "TRACE OFF";
+    private final String AND = "AND";
+    private final String OR = "OR";
+    private final String LIBNAME = "LIBNAME";
+    private final String IMPORT = "IMPORT";
+    private final String GOTO = "GOTO";
+    private final String GOSUB = "GOSUB";
+    private final String IF = "IF";
+    private final String ELSE = "ELSE";
+    private final String THEN = "THEN";
+    private final String ENDIF = "ENDIF";
+    private final String WHILE = "WHILE";
+    private final String DO = "DO";
+    private final String EXITSCRIPT = "EXITSCRIPT";
 
     public Tokenizer(TokenParser tokenParser) {
         this.tokenParser = tokenParser;
