@@ -100,11 +100,8 @@ public class FDASocket {
             String raw;
 
             while (!shutdown && (raw = in.readLine()) != null) {
-
                 JsonObject req = gson.fromJson(raw, JsonObject.class);
-
                 String type = req.remove("type").getAsString();
-
                 JsonObject response = new JsonObject();
 
                 try {
@@ -137,6 +134,7 @@ public class FDASocket {
                             break;
                         
                         case "DEPLOY_CUSTOM_MENU":
+                            response = custom24Handler.deployCustomMenu(req);
                             break;
 
                         case "GET_SUGGESTIONS":
@@ -160,7 +158,7 @@ public class FDASocket {
                     String excpMsg = e.getClass().getSimpleName()
                             + " : "
                             + (e.getMessage() != null ? e.getMessage() : "No message!")
-                            + " while handling request type : "
+                            + ", while handling request type : "
                             + type;
                     response.addProperty("STATUS", "EXCEPTION");
                     response.addProperty("EXCEPTION", excpMsg);
