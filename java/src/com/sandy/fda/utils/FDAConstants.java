@@ -34,9 +34,10 @@ public class FDAConstants {
                         .getPath();
 
                 appDirectory = new File(jarPath).getParentFile();
-                //appDirectory = new File("D:\\Santhosh\\Personal Learning\\Finacle Validator\\FDA\\java\\");
-                //propFile = new File(appDirectory, "dev.fdaplugin.properties");
                 propFile = new File(appDirectory, "fdaplugin.properties");
+                
+                // appDirectory = new File("D:\\Santhosh\\Personal Learning\\Finacle Validator\\FDA\\java\\");
+                // propFile = new File(appDirectory, "dev.fdaplugin.properties");
 
                 oldPropFileSize = getPropertiesFileSize();
 
