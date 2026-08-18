@@ -1,6 +1,7 @@
 package com.sandy.fda.custom24;
 
 import java.io.File;
+import java.net.ConnectException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.jcraft.jsch.JSchException;
 import com.sandy.fda.models.custom24.C24Environment;
 import com.sandy.fda.models.custom24.Menu;
 import com.sandy.fda.models.custom24.enums.FileType;
@@ -58,9 +60,18 @@ public class Custom24Handler {
                 }
             }
         }
-
-        sftpHandler.transferFiles(c24Env, filesToBeDeployed);
-        response.addProperty("STATUS", "SUCCESS");
+        try {
+            sftpHandler.transferFiles(c24Env, filesToBeDeployed);
+            response.addProperty("STATUS", "SUCCESS");
+        } catch (JSchException e) {
+            if (e.getCause() instanceof ConnectException) {
+                response.addProperty("STATUS", "NET_CNT_EXCP");
+                response.addProperty("EXCEPTION",
+                        "Unable to connect to the finacle server. Please check the network connection and server availability.");
+            } else {
+                throw e;
+            }
+        }
         return response;
     }
 
