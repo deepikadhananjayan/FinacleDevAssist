@@ -9,6 +9,9 @@
 #include <sstream>
 #include <algorithm>
 
+#include <shlobj.h>
+#pragma comment(lib, "shell32.lib")
+
 // -------------------------------------------------------
 // Statics
 // -------------------------------------------------------
@@ -17,6 +20,38 @@ std::string              FDAConfig::javaHost = "127.0.0.1";
 int                      FDAConfig::javaPort = 0;
 std::vector<std::string> FDAConfig::fiEnvironments;
 std::vector<FDAProperty> FDAConfig::properties;
+
+// -------------------------------------------------------
+// C24 environment key helpers
+// -------------------------------------------------------
+static const char* kC24Fields[] = {
+    "host", "port", "username", "password", "bankId", "bePath", "fePath"
+};
+
+bool FDAConfig::isC24Field(const std::string& field)
+{
+    for (const char* f : kC24Fields)
+        if (field == f) return true;
+    return false;
+}
+
+bool FDAConfig::isC24EnvKey(const std::string& key, std::string& outName, std::string& outField)
+{
+    const std::string prefix = "c24.";
+    if (key.rfind(prefix, 0) != 0) return false;
+
+    std::string rest = key.substr(prefix.length());
+    size_t lastDot = rest.find_last_of('.');
+    if (lastDot == std::string::npos) return false;
+
+    outName = rest.substr(0, lastDot);
+    outField = rest.substr(lastDot + 1);
+
+    if (outName.empty()) return false;
+    if (!isC24Field(outField)) return false;
+
+    return true;
+}
 
 // -------------------------------------------------------
 // Permission rules — all centralized here
@@ -37,9 +72,32 @@ void FDAConfig::setPropertyPermissions(FDAProperty& prop)
         return;
     }
 
+    if (prop.key == "c24.output.dir")
+    {
+        prop.editable = true;
+        prop.deletable = false;
+        return;
+    }
+
+    if (isC24EnvironmentKey(prop.key))
+    {
+        // Individual sub-keys are edited/deleted only as a group via
+        // updateC24Environment/deleteC24Environment — flags below just
+        // drive the "Access" column display in the UI.
+        prop.editable = true;
+        prop.deletable = true;
+        return;
+    }
+
     // Unknown / future properties default to read-only
     prop.editable = false;
     prop.deletable = false;
+}
+
+bool FDAConfig::isC24EnvironmentKey(const std::string& key)
+{
+    std::string name, field;
+    return isC24EnvKey(key, name, field);
 }
 
 // -------------------------------------------------------
@@ -55,19 +113,6 @@ bool FDAConfig::isProtected(const std::string& key)
 // -------------------------------------------------------
 int FDAConfig::validateKey(const std::string& key)
 {
-    if (key.rfind("fi.", 0) != 0)
-    {
-        Logger::error("[CONFIG] Invalid key — must start with 'fi.' : " + key);
-        return 1;
-    }
-
-    // Must have something after "fi."
-    if (key.length() <= 3)
-    {
-        Logger::error("[CONFIG] Invalid key — nothing after 'fi.' : " + key);
-        return 2;
-    }
-
     if (key.find('=') != std::string::npos)
     {
         Logger::error("[CONFIG] Invalid key — must not contain '=' : " + key);
@@ -189,6 +234,40 @@ bool FDAConfig::load()
     }
 
     file.close();
+
+    // Ensure c24.output.dir exists with a sensible default
+    bool hasOutputDir = false;
+    for (const FDAProperty& p : properties)
+    {
+        if (p.key == "c24.output.dir") { hasOutputDir = true; break; }
+    }
+
+    if (!hasOutputDir)
+    {
+        std::string defaultDir = wideToString(getDefaultDownloadsPath());
+        if (!defaultDir.empty())
+        {
+            std::ofstream appendFile(propertyFilePath, std::ios::app | std::ios::binary);
+            if (appendFile.is_open())
+            {
+                appendFile << "\r\nc24.output.dir=" << defaultDir;
+                appendFile.flush();
+                appendFile.close();
+
+                FDAProperty prop;
+                prop.key = "c24.output.dir";
+                prop.value = defaultDir;
+                setPropertyPermissions(prop);
+                properties.push_back(prop);
+
+                Logger::info("[CONFIG] Created default c24.output.dir : " + defaultDir);
+            }
+            else
+            {
+                Logger::error("[CONFIG] Failed to write default c24.output.dir");
+            }
+        }
+    }
 
     Logger::info("[CONFIG] Host : " + javaHost);
     Logger::info("[CONFIG] Port : " + std::to_string(javaPort));
@@ -510,6 +589,257 @@ int FDAConfig::deleteProperty(const std::string& key)
 }
 
 // -------------------------------------------------------
+// getC24EnvironmentNames()
+// -------------------------------------------------------
+std::vector<std::string> FDAConfig::getC24EnvironmentNames()
+{
+    std::vector<std::string> names;
+
+    for (const FDAProperty& p : properties)
+    {
+        std::string name, field;
+        if (isC24EnvKey(p.key, name, field))
+        {
+            if (std::find(names.begin(), names.end(), name) == names.end())
+                names.push_back(name);
+        }
+    }
+
+    return names;
+}
+
+// -------------------------------------------------------
+// getC24Environment()
+// -------------------------------------------------------
+bool FDAConfig::getC24Environment(const std::string& name, FDAC24Environment& outEnv)
+{
+    bool found = false;
+    outEnv = FDAC24Environment();
+    outEnv.name = name;
+
+    for (const FDAProperty& p : properties)
+    {
+        std::string envName, field;
+        if (isC24EnvKey(p.key, envName, field) && envName == name)
+        {
+            found = true;
+            if (field == "host")          outEnv.host = p.value;
+            else if (field == "port")     outEnv.port = p.value;
+            else if (field == "username") outEnv.username = p.value;
+            else if (field == "password") outEnv.password = p.value;
+            else if (field == "bankId")   outEnv.bankId = p.value;
+            else if (field == "bePath")   outEnv.bePath = p.value;
+            else if (field == "fePath")   outEnv.fePath = p.value;
+        }
+    }
+
+    return found;
+}
+
+// -------------------------------------------------------
+// addC24Environment()
+// -------------------------------------------------------
+int FDAConfig::addC24Environment(const FDAC24Environment& env)
+{
+    if (env.name.empty())
+    {
+        Logger::error("[CONFIG] addC24Environment rejected — empty environment name");
+        return 9;
+    }
+
+    if (env.name.find('=') != std::string::npos || env.name.find('.') != std::string::npos)
+    {
+        Logger::error("[CONFIG] addC24Environment rejected — invalid characters in name : " + env.name);
+        return 10;
+    }
+
+    std::vector<std::string> existing = getC24EnvironmentNames();
+    for (const std::string& n : existing)
+    {
+        if (n == env.name)
+        {
+            Logger::error("[CONFIG] addC24Environment rejected — environment already exists : " + env.name);
+            return 5;
+        }
+    }
+
+    if (!validateValue(env.host) || !validateValue(env.port) ||
+        !validateValue(env.username) || !validateValue(env.password) ||
+        !validateValue(env.bankId) || !validateValue(env.bePath) ||
+        !validateValue(env.fePath))
+    {
+        return 4;
+    }
+
+    std::ofstream file(propertyFilePath, std::ios::app | std::ios::binary);
+    if (!file.is_open())
+    {
+        Logger::error("[CONFIG] addC24Environment failed — cannot open : " + propertyFilePath
+            + " error : " + std::to_string(errno));
+        return errno;
+    }
+
+    const std::string base = "c24." + env.name + ".";
+    file << "\r\n" << base << "host=" << env.host;
+    file << "\r\n" << base << "port=" << env.port;
+    file << "\r\n" << base << "username=" << env.username;
+    file << "\r\n" << base << "password=" << env.password;
+    file << "\r\n" << base << "bankId=" << env.bankId;
+    file << "\r\n" << base << "bePath=" << env.bePath;
+    file << "\r\n" << base << "fePath=" << env.fePath;
+    file.flush();
+    file.close();
+
+    Logger::info("[CONFIG] Added C24 environment : " + env.name);
+
+    reload();
+    return 0;
+}
+
+// -------------------------------------------------------
+// updateC24Environment()
+// -------------------------------------------------------
+int FDAConfig::updateC24Environment(const FDAC24Environment& env)
+{
+    std::vector<std::string> existing = getC24EnvironmentNames();
+    bool found = false;
+    for (const std::string& n : existing) if (n == env.name) { found = true; break; }
+
+    if (!found)
+    {
+        Logger::error("[CONFIG] updateC24Environment rejected — environment not found : " + env.name);
+        return 7;
+    }
+
+    if (!validateValue(env.host) || !validateValue(env.port) ||
+        !validateValue(env.username) || !validateValue(env.password) ||
+        !validateValue(env.bankId) || !validateValue(env.bePath) ||
+        !validateValue(env.fePath))
+    {
+        return 4;
+    }
+
+    std::ifstream inFile(propertyFilePath);
+    if (!inFile.is_open())
+    {
+        Logger::error("[CONFIG] updateC24Environment failed — cannot read file");
+        return errno;
+    }
+
+    std::vector<std::string> lines;
+    std::string line;
+    const std::string base = "c24." + env.name + ".";
+
+    while (std::getline(inFile, line))
+    {
+        size_t separator = line.find('=');
+        if (separator != std::string::npos)
+        {
+            std::string lineKey = line.substr(0, separator);
+            size_t ks = lineKey.find_first_not_of(" \t");
+            size_t ke = lineKey.find_last_not_of(" \t");
+            if (ks != std::string::npos) lineKey = lineKey.substr(ks, ke - ks + 1);
+
+            if (lineKey == base + "host")          line = base + "host=" + env.host;
+            else if (lineKey == base + "port")     line = base + "port=" + env.port;
+            else if (lineKey == base + "username") line = base + "username=" + env.username;
+            else if (lineKey == base + "password") line = base + "password=" + env.password;
+            else if (lineKey == base + "bankId")   line = base + "bankId=" + env.bankId;
+            else if (lineKey == base + "bePath")   line = base + "bePath=" + env.bePath;
+            else if (lineKey == base + "fePath")   line = base + "fePath=" + env.fePath;
+        }
+        lines.push_back(line);
+    }
+    inFile.close();
+
+    std::ofstream outFile(propertyFilePath, std::ios::binary);
+    if (!outFile.is_open())
+    {
+        Logger::error("[CONFIG] updateC24Environment failed — cannot write : " + propertyFilePath
+            + " error : " + std::to_string(errno));
+        return errno;
+    }
+
+    for (size_t i = 0; i < lines.size(); ++i)
+    {
+        outFile << lines[i];
+        if (i < lines.size() - 1) outFile << "\r\n";
+    }
+    outFile.flush();
+    outFile.close();
+
+    Logger::info("[CONFIG] Updated C24 environment : " + env.name);
+
+    reload();
+    return 0;
+}
+
+// -------------------------------------------------------
+// deleteC24Environment()
+// -------------------------------------------------------
+int FDAConfig::deleteC24Environment(const std::string& name)
+{
+    std::vector<std::string> existing = getC24EnvironmentNames();
+    bool found = false;
+    for (const std::string& n : existing) if (n == name) { found = true; break; }
+
+    if (!found)
+    {
+        Logger::error("[CONFIG] deleteC24Environment rejected — environment not found : " + name);
+        return 7;
+    }
+
+    std::ifstream inFile(propertyFilePath);
+    if (!inFile.is_open())
+    {
+        Logger::error("[CONFIG] deleteC24Environment failed — cannot read file");
+        return errno;
+    }
+
+    std::vector<std::string> lines;
+    std::string line;
+    const std::string base = "c24." + name + ".";
+
+    while (std::getline(inFile, line))
+    {
+        size_t separator = line.find('=');
+        if (separator != std::string::npos)
+        {
+            std::string lineKey = line.substr(0, separator);
+            size_t ks = lineKey.find_first_not_of(" \t");
+            size_t ke = lineKey.find_last_not_of(" \t");
+            if (ks != std::string::npos) lineKey = lineKey.substr(ks, ke - ks + 1);
+
+            if (lineKey.rfind(base, 0) == 0)
+                continue; // skip — part of this environment
+        }
+        lines.push_back(line);
+    }
+    inFile.close();
+
+    std::ofstream outFile(propertyFilePath, std::ios::binary);
+    if (!outFile.is_open())
+    {
+        Logger::error("[CONFIG] deleteC24Environment failed — cannot write : " + propertyFilePath
+            + " error : " + std::to_string(errno));
+        return errno;
+    }
+
+    for (size_t i = 0; i < lines.size(); ++i)
+    {
+        outFile << lines[i];
+        if (i < lines.size() - 1) outFile << "\r\n";
+    }
+    outFile.flush();
+    outFile.close();
+
+    Logger::info("[CONFIG] Deleted C24 environment : " + name);
+
+    reload();
+    return 0;
+}
+
+// -------------------------------------------------------
 // Getters
 // -------------------------------------------------------
 std::string FDAConfig::getJavaHost()
@@ -530,6 +860,20 @@ const std::vector<std::string>& FDAConfig::getFIEnvironments()
 const std::vector<FDAProperty>& FDAConfig::getProperties()
 {
     return properties;
+}
+
+std::wstring FDAConfig::getDefaultDownloadsPath()
+{
+    PWSTR path = nullptr;
+    std::wstring result;
+
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Downloads, 0, nullptr, &path)))
+    {
+        result = path;
+        CoTaskMemFree(path);
+    }
+
+    return result;
 }
 
 // -------------------------------------------------------

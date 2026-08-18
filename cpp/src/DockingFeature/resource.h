@@ -56,5 +56,18 @@
 #define IDC_PROP_KEY                 5023
 #define IDC_PROP_VALUE_LABEL         5024
 #define IDC_PROP_VALUE               5025
+#define IDC_PROP_KEY_PREFIX          5036
+
+#define IDC_PROPERTIES_ADD_C24       5026
+#define IDD_FDA_C24_ENV_EDIT_DIALOG  5027
+#define IDC_C24_NAME                 5028
+#define IDC_C24_HOST                 5029
+#define IDC_C24_PORT                 5030
+#define IDC_C24_USERNAME             5031
+#define IDC_C24_PASSWORD             5032
+#define IDC_C24_BANKID               5033
+#define IDC_C24_BEPATH               5034
+#define IDC_C24_FEPATH               5035
+#define IDC_C24_NAME_PREFIX          5037
 #endif // RESOURCE_H
 
