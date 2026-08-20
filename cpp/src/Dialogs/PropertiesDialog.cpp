@@ -4,31 +4,11 @@
 #include "../Configuration/FDAConfig.h"
 #include "../Core/FDAApplication.h"
 #include "../Utils/Logger.h"
+#include "../Utils/StringConvert.h"
 #include <string>
 #include <commctrl.h>
 
 #pragma comment(lib, "comctl32.lib")
-
-// -------------------------------------------------------
-// Helpers
-// -------------------------------------------------------
-static std::wstring NarrowToWide(const std::string& s)
-{
-    if (s.empty()) return {};
-    int size = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, nullptr, 0);
-    std::wstring result(size - 1, L'\0');
-    MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, &result[0], size);
-    return result;
-}
-
-static std::string WideToNarrow(const TCHAR* wide)
-{
-    if (!wide || wide[0] == L'\0') return {};
-    int size = WideCharToMultiByte(CP_UTF8, 0, wide, -1, nullptr, 0, nullptr, nullptr);
-    std::string result(size - 1, '\0');
-    WideCharToMultiByte(CP_UTF8, 0, wide, -1, &result[0], size, nullptr, nullptr);
-    return result;
-}
 
 static void handleError(int errCode, HWND hDlg)
 {
@@ -100,7 +80,7 @@ static void handleError(int errCode, HWND hDlg)
 struct DisplayRow
 {
     bool isC24Group = false;
-    std::string identifier; // key for a normal row, env name for a grouped row
+    std::string identifier;
 };
 
 static std::vector<DisplayRow> gDisplayRows;
@@ -118,7 +98,7 @@ static void PopulateList(HWND hList)
     for (const FDAProperty& p : props)
     {
         if (FDAConfig::isC24EnvironmentKey(p.key))
-            continue; // shown as grouped rows below, not individually
+            continue;
 
         LVITEM lvi = {};
         lvi.mask = LVIF_TEXT;
@@ -225,7 +205,6 @@ INT_PTR CALLBACK PropertyEditDialogProc(
     {
         pParams = reinterpret_cast<PropertyEditParams*>(lParam);
 
-        // Icon
         HICON hIconSmall = static_cast<HICON>(LoadImage(
             FDAApplication::getModuleHandle(),
             MAKEINTRESOURCE(IDI_FDA_SMALL), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR));
@@ -235,7 +214,6 @@ INT_PTR CALLBACK PropertyEditDialogProc(
         if (hIconSmall) SendMessage(hDlg, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(hIconSmall));
         if (hIconBig)   SendMessage(hDlg, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(hIconBig));
 
-        // Center
         RECT pr, dr;
         GetWindowRect(nppData._nppHandle, &pr);
         GetWindowRect(hDlg, &dr);
@@ -243,7 +221,6 @@ INT_PTR CALLBACK PropertyEditDialogProc(
         int y = pr.top + (pr.bottom - pr.top - (dr.bottom - dr.top)) / 2;
         SetWindowPos(hDlg, nullptr, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 
-        // Pre-fill
         if (pParams)
         {
             SetWindowText(GetDlgItem(hDlg, IDC_PROP_VALUE),
@@ -252,18 +229,13 @@ INT_PTR CALLBACK PropertyEditDialogProc(
             HWND hKey = GetDlgItem(hDlg, IDC_PROP_KEY);
             HWND hPrefix = GetDlgItem(hDlg, IDC_PROP_KEY_PREFIX);
 
-            // Two fixed layouts, defined in RC dialog units and converted to
-            // pixels via MapDialogRect — the standard, reliable way to do
-            // this; avoids hand-rolled DLU math or probing other controls.
-            RECT editFull = { 55, 12, 260, 26 }; // Edit mode: same width as Value box
-            RECT editSuffix = { 78, 12, 260, 26 }; // Add mode: starts after "fi." prefix
+            RECT editFull = { 55, 12, 260, 26 };
+            RECT editSuffix = { 78, 12, 260, 26 };
             MapDialogRect(hDlg, &editFull);
             MapDialogRect(hDlg, &editSuffix);
 
             if (pParams->keyReadOnly)
             {
-                // Editing an existing key (fi.* or c24.output.dir) — box
-                // matches the width of every other input field.
                 SetWindowText(hPrefix, TEXT(""));
                 SetWindowPos(hKey, nullptr, editFull.left, editFull.top,
                     editFull.right - editFull.left, editFull.bottom - editFull.top,
@@ -274,8 +246,6 @@ INT_PTR CALLBACK PropertyEditDialogProc(
             }
             else
             {
-                // Adding a new FI environment — "fi." is a fixed label,
-                // the box holds only the suffix the user types.
                 SetWindowText(hPrefix, TEXT("fi."));
                 SetWindowPos(hKey, nullptr, editSuffix.left, editSuffix.top,
                     editSuffix.right - editSuffix.left, editSuffix.bottom - editSuffix.top,
@@ -286,7 +256,6 @@ INT_PTR CALLBACK PropertyEditDialogProc(
             }
         }
 
-        // Dark mode
         if (::SendMessage(nppData._nppHandle, NPPM_ISDARKMODEENABLED, 0, 0))
             hDarkBrush = CreateSolidBrush(RGB(37, 37, 38));
 
@@ -351,9 +320,6 @@ INT_PTR CALLBACK PropertyEditDialogProc(
 
             if (pParams && !pParams->keyReadOnly)
             {
-                // Add mode — the box holds only the suffix the user typed;
-                // "fi." is a fixed label, not part of this text, so it has
-                // to be prepended here before the key is ever used.
                 if (typedKey.empty())
                 {
                     MessageBox(hDlg,
@@ -375,8 +341,6 @@ INT_PTR CALLBACK PropertyEditDialogProc(
             }
             else
             {
-                // Edit mode — the box already holds the full, locked key
-                // (fi.* or c24.output.dir) exactly as populated on init.
                 key = typedKey;
             }
 
@@ -571,8 +535,6 @@ INT_PTR CALLBACK C24EnvEditDialogProc(
                 return TRUE;
             }
 
-            // Duplicate name check — only relevant when adding a new environment;
-            // on Edit the name field is locked and unchanged, so this can't fire.
             if (pParams && !pParams->nameReadOnly)
             {
                 std::vector<std::string> existingNames = FDAConfig::getC24EnvironmentNames();
@@ -598,9 +560,6 @@ INT_PTR CALLBACK C24EnvEditDialogProc(
                 return TRUE;
             }
 
-            // Port must be numeric — ES_NUMBER on the control blocks most bad
-            // input at the keystroke level, but paste/IME can still bypass it,
-            // so re-check here.
             for (char c : env.port)
             {
                 if (!isdigit(static_cast<unsigned char>(c)))
@@ -670,16 +629,15 @@ INT_PTR CALLBACK PropertiesDialogProc(
         int y = pr.top + (pr.bottom - pr.top - (dr.bottom - dr.top)) / 2;
         SetWindowPos(hDlg, nullptr, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 
-        // Setup ListView columns
         HWND hList = GetDlgItem(hDlg, IDC_PROPERTIES_LIST);
 
         RECT listRect;
         GetClientRect(hList, &listRect);
-        int totalWidth = listRect.right - listRect.left - 4; // -4 for border
+        int totalWidth = listRect.right - listRect.left - 4;
 
-        int colValue = totalWidth / 2;        // 50%
-        int colProperty = totalWidth / 4;        // 25%
-        int colAccess = totalWidth - colValue - colProperty; // 25%
+        int colValue = totalWidth / 2;
+        int colProperty = totalWidth / 4;
+        int colAccess = totalWidth - colValue - colProperty;
 
         LVCOLUMN col = {};
         col.mask = LVCF_TEXT | LVCF_WIDTH;
@@ -696,17 +654,14 @@ INT_PTR CALLBACK PropertiesDialogProc(
         col.cx = colAccess;
         ListView_InsertColumn(hList, 2, &col);
 
-        // Full row select
         ListView_SetExtendedListViewStyle(hList,
             LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
         PopulateList(hList);
 
-        // Start with Edit/Delete disabled
         EnableWindow(GetDlgItem(hDlg, IDC_PROPERTIES_EDIT), FALSE);
         EnableWindow(GetDlgItem(hDlg, IDC_PROPERTIES_DELETE), FALSE);
 
-        // Dark mode
         if (::SendMessage(nppData._nppHandle, NPPM_ISDARKMODEENABLED, 0, 0))
             hDarkBrush = CreateSolidBrush(RGB(37, 37, 38));
 
@@ -771,9 +726,9 @@ INT_PTR CALLBACK PropertiesDialogProc(
     {
         switch (LOWORD(wParam))
         {
-            // --------------------------------------------------
-            // Add (FI environment)
-            // --------------------------------------------------
+        // --------------------------------------------------
+        // Add (FI environment)
+        // --------------------------------------------------
         case IDC_PROPERTIES_ADD:
         {
             PropertyEditParams params;
@@ -870,7 +825,7 @@ INT_PTR CALLBACK PropertiesDialogProc(
 
                 if (result == IDOK)
                 {
-                    params.env.name = row.identifier; // locked, keep original
+                    params.env.name = row.identifier;
                     int res = FDAConfig::updateC24Environment(params.env);
                     if (res != 0) handleError(res, hDlg);
                     else { PopulateList(hList); UpdateButtonStates(hDlg); }
