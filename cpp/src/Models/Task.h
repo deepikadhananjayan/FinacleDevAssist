@@ -4,6 +4,7 @@
 #include <variant>
 #include "BeautifyData.h"
 #include "FIRequestData.h"
+#include "CustomMenuModel.h"
 
 enum class TaskType
 {
@@ -26,6 +27,7 @@ struct Task
         std::monostate,
         std::string,
         BeautifyData,
-        FIRequestData
+        FIRequestData,
+        CustomMenuData
     > data;
 };

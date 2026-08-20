@@ -1,0 +1,42 @@
+{
+  "menuType": [
+    "UPLOAD",
+    "TWO_PAGE",
+    "THREE_PAGE",
+    "MRM",
+    "MRH_TYPE1",
+    "MRH_TYPE2",
+    "MRH_TYPE3"
+  ],
+  "generateDesign": [
+    "XML",
+    "INC",
+    "GINC",
+    "INFENG",
+    "PROPS",
+    "LINK",
+    "GLINK",
+    "HELP",
+    "SQL"
+  ],
+  "fieldPlacement": [
+    "CRITERIA",
+    "DETAIL",
+    "RESULT"
+  ],
+  "fieldType": [
+    "TEXT",
+    "TEXTWITHSEARCHER",
+    "DATE",
+    "HIDDEN",
+    "SELECT",
+    "RADIO",
+    "CHECKBOX",
+    "DATE_FREQUENCY"
+  ],
+  "searcher": [
+    "CUSTOM_SEARCHER",
+    "ACCOUNT_SEARCHER",
+    "CUSTOMER_SEARCHER"
+  ]
+}

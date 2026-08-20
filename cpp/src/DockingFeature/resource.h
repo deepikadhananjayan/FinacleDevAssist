@@ -69,5 +69,38 @@
 #define IDC_C24_BEPATH               5034
 #define IDC_C24_FEPATH               5035
 #define IDC_C24_NAME_PREFIX          5037
+
+// Add Option sub-dialog
+#define IDD_FDA_OPTION_EDIT_DIALOG     5040
+#define IDC_OPTION_VALUE               5041
+#define IDC_OPTION_LABEL               5042
+
+// Add Field sub-dialog
+#define IDD_FDA_FIELD_EDIT_DIALOG      5043
+#define IDC_FIELD_PLACEMENT            5044
+#define IDC_FIELD_TYPE                 5045
+#define IDC_FIELD_LABEL                5046
+#define IDC_FIELD_ID                   5047
+#define IDC_FIELD_DESCRIPTION          5048
+#define IDC_FIELD_SEARCHER             5049
+#define IDC_FIELD_IS_DISABLED          5050
+#define IDC_FIELD_IS_MANDATORY         5051
+#define IDC_FIELD_OPTIONS_LIST         5052
+#define IDC_FIELD_OPTIONS_ADD          5053
+#define IDC_FIELD_OPTIONS_EDIT         5054
+#define IDC_FIELD_OPTIONS_DELETE       5055
+#define IDC_FIELD_OPTIONS_LABEL      5066
+
+// Main Generate Custom Menu window
+#define IDD_FDA_CUSTOM_MENU_DIALOG     5056
+#define IDC_MENU_NAME                  5057
+#define IDC_MENU_DESCRIPTION           5058
+#define IDC_MENU_TYPE                  5059
+#define IDC_MENU_GENERATE_DESIGN_LIST  5060
+#define IDC_MENU_FIELDS_LIST           5061
+#define IDC_MENU_ADD_FIELD             5062
+#define IDC_MENU_EDIT_FIELD            5063
+#define IDC_MENU_DELETE_FIELD          5064
+#define IDC_MENU_GENERATE              5065
 #endif // RESOURCE_H
 

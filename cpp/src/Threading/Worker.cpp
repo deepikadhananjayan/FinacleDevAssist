@@ -8,6 +8,7 @@
 #include "../Communication/Handlers/ValidationHandler.h"
 #include "../Communication/Handlers/CodeBeautifierHandler.h"
 #include "../Communication/Handlers/FIExecutionHandler.h"
+#include "../Communication/Handlers/GenerateCustomMenuHandler.h"
 
 Worker::Worker()
 {
@@ -18,6 +19,7 @@ Worker::Worker()
     validationHandler = std::make_unique<ValidationHandler>(client.get());
     codeBeautifierHandler = std::make_unique<CodeBeautifierHandler>(client.get());
     fiExecutionHandler = std::make_unique<FIExecutionHandler>(client.get());
+    generateCustomMenuHandler = std::make_unique<GenerateCustomMenuHandler>(client.get());
 }
 
 Worker::~Worker() = default;
@@ -130,9 +132,26 @@ void Worker::run()
             break;
         }
 
-        case TaskType::GENERATE_MENU_SOURCE:
+        case TaskType::GENERATE_CUSTOM_MENU:
         {
             Logger::info("[WORKER] GENERATE_MENU_SOURCE task");
+
+            try
+            {
+                const CustomMenuData& data = std::get<CustomMenuData>(task.data);
+                generateCustomMenuHandler->generateMenu(data);
+            }
+            catch (const std::exception& e)
+            {
+                Logger::error("[WORKER] Exception : " + std::string(e.what()));
+            }
+                
+            break;
+        }
+
+        case TaskType::DEPLOY_CUSTOM_MENU:
+        {
+            Logger::info("[WORKER] DEPLOY_CUSTOM_MENU task");
 
             try
             {
@@ -142,7 +161,7 @@ void Worker::run()
             {
                 Logger::error("[WORKER] Exception : " + std::string(e.what()));
             }
-                
+
             break;
         }
 

@@ -13,6 +13,8 @@
 #include "../DockingFeature/resource.h"
 #include "../Models/FIRequestData.h"
 #include "../Configuration/FDAConfig.h"
+#include "../Models/CustomMenuModel.h"
+#include "../Dialogs/CustomMenuDialog.h"
 
 #pragma comment(lib, "Version.lib")
 
@@ -311,6 +313,35 @@ void FDAApplication::handleBeautifyCode()
 
 void FDAApplication::handleGenerateCustomMenu()
 {
+    if (state != FDAApplicationState::READY)
+    {
+        MessageBox(
+            nppData._nppHandle,
+            TEXT("FDA Plugin is not initialized."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONINFORMATION
+        );
+        return;
+    }
+
+    CustomMenuData customMenuData;
+
+    INT_PTR result = DialogBoxParam(
+        FDAApplication::getModuleHandle(),
+        MAKEINTRESOURCE(IDD_FDA_CUSTOM_MENU_DIALOG),
+        nppData._nppHandle,
+        CustomMenuDialogProc,
+        reinterpret_cast<LPARAM>(&customMenuData)
+    );
+
+    if (result != IDOK)
+        return;
+
+    worker->submit({ TaskType::GENERATE_CUSTOM_MENU, customMenuData });
+}
+
+void FDAApplication::handleDeployCustomMenu()
+{
     //if (state != FDAApplicationState::READY)
     //{
     //    MessageBox(
@@ -322,16 +353,6 @@ void FDAApplication::handleGenerateCustomMenu()
     //    return;
     //}
 
-    MessageBox(
-        nppData._nppHandle,
-        TEXT("Generate Custom Menu Feature is Under Development!."),
-        TEXT("Finacle Dev Assist"),
-        MB_OK | MB_ICONINFORMATION
-    );
-}
-
-void FDAApplication::handleDeployCustomMenu()
-{
     MessageBox(
         nppData._nppHandle,
         TEXT("Deploy Source Feature is Under Development!."),
