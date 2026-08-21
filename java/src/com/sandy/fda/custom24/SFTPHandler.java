@@ -9,6 +9,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 import com.sandy.fda.models.custom24.C24Environment;
+import com.sandy.fda.utils.FDACrypto;
 
 public class SFTPHandler {
     private JSch jsch;
@@ -18,10 +19,10 @@ public class SFTPHandler {
     }
 
     void transferFiles(C24Environment env, Map<String, List<File>> files) throws Exception {
-        String username = env.username();
+        String username = FDACrypto.decrypt(env.username());
         String host = env.host();
         int port = env.port();
-        String password = env.password();
+        String password = FDACrypto.decrypt(env.password());
 
         Session session = jsch.getSession(username, host, port);
         session.setPassword(password.getBytes());

@@ -2,6 +2,7 @@ package com.sandy.fda.custom24;
 
 import java.io.File;
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +65,7 @@ public class Custom24Handler {
             sftpHandler.transferFiles(c24Env, filesToBeDeployed);
             response.addProperty("STATUS", "SUCCESS");
         } catch (JSchException e) {
-            if (e.getCause() instanceof ConnectException) {
+            if (e.getCause() instanceof ConnectException || e.getCause() instanceof NoRouteToHostException) {
                 response.addProperty("STATUS", "NET_CNT_EXCP");
                 response.addProperty("EXCEPTION",
                         "Unable to connect to the finacle server. Please check the network connection and server availability.");
