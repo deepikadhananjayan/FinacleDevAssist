@@ -121,7 +121,8 @@ static void PopulateList(HWND hList)
     for (const std::string& name : c24Names)
     {
         FDAC24Environment env;
-        FDAConfig::getC24Environment(name, env);
+        bool decryptFailed = false; // unused here — summary row never shows username/password
+        FDAConfig::getC24Environment(name, env, decryptFailed);
 
         std::wstring label = L"c24." + NarrowToWide(name);
 
@@ -809,7 +810,17 @@ INT_PTR CALLBACK PropertiesDialogProc(
             if (row.isC24Group)
             {
                 FDAC24Environment env;
-                if (!FDAConfig::getC24Environment(row.identifier, env)) return TRUE;
+                bool decryptFailed = false;
+                if (!FDAConfig::getC24Environment(row.identifier, env, decryptFailed)) return TRUE;
+
+                if (decryptFailed)
+                {
+                    MessageBox(hDlg,
+                        TEXT("Unable to decrypt credentials for this environment.\n\n")
+                        TEXT("The stored data may be corrupted, or this environment was added on a different machine."),
+                        TEXT("Finacle Dev Assist"), MB_OK | MB_ICONERROR);
+                    return TRUE; // abort — don't open the edit dialog with blank/corrupted credentials
+                }
 
                 C24EnvEditParams params;
                 params.env = env;

@@ -39,7 +39,7 @@ public:
 
     // C24 environment group operations
     static std::vector<std::string> getC24EnvironmentNames();
-    static bool getC24Environment(const std::string& name, FDAC24Environment& outEnv);
+    static bool FDAConfig::getC24Environment(const std::string& name, FDAC24Environment& outEnv, bool& decryptFailed);
     static int addC24Environment(const FDAC24Environment& env);
     static int updateC24Environment(const FDAC24Environment& env);
     static int deleteC24Environment(const std::string& name);

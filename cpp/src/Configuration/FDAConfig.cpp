@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include <shlobj.h>
+#include "../Utils/FDACrypto.h"
 #pragma comment(lib, "shell32.lib")
 
 // -------------------------------------------------------
@@ -611,9 +612,10 @@ std::vector<std::string> FDAConfig::getC24EnvironmentNames()
 // -------------------------------------------------------
 // getC24Environment()
 // -------------------------------------------------------
-bool FDAConfig::getC24Environment(const std::string& name, FDAC24Environment& outEnv)
+bool FDAConfig::getC24Environment(const std::string& name, FDAC24Environment& outEnv, bool& decryptFailed)
 {
     bool found = false;
+    decryptFailed = false;
     outEnv = FDAC24Environment();
     outEnv.name = name;
 
@@ -625,8 +627,18 @@ bool FDAConfig::getC24Environment(const std::string& name, FDAC24Environment& ou
             found = true;
             if (field == "host")          outEnv.host = p.value;
             else if (field == "port")     outEnv.port = p.value;
-            else if (field == "username") outEnv.username = p.value;
-            else if (field == "password") outEnv.password = p.value;
+            else if (field == "username")
+            {
+                std::string dec = FDACrypto::decrypt(p.value);
+                if (dec.empty() && !p.value.empty()) decryptFailed = true;
+                outEnv.username = dec;
+            }
+            else if (field == "password")
+            {
+                std::string dec = FDACrypto::decrypt(p.value);
+                if (dec.empty() && !p.value.empty()) decryptFailed = true;
+                outEnv.password = dec;
+            }
             else if (field == "bankId")   outEnv.bankId = p.value;
             else if (field == "bePath")   outEnv.bePath = p.value;
             else if (field == "fePath")   outEnv.fePath = p.value;
@@ -682,8 +694,8 @@ int FDAConfig::addC24Environment(const FDAC24Environment& env)
     const std::string base = "c24." + env.name + ".";
     file << "\r\n" << base << "host=" << env.host;
     file << "\r\n" << base << "port=" << env.port;
-    file << "\r\n" << base << "username=" << env.username;
-    file << "\r\n" << base << "password=" << env.password;
+    file << "\r\n" << base << "username=" << FDACrypto::encrypt(env.username);
+    file << "\r\n" << base << "password=" << FDACrypto::encrypt(env.password);
     file << "\r\n" << base << "bankId=" << env.bankId;
     file << "\r\n" << base << "bePath=" << env.bePath;
     file << "\r\n" << base << "fePath=" << env.fePath;
@@ -742,8 +754,8 @@ int FDAConfig::updateC24Environment(const FDAC24Environment& env)
 
             if (lineKey == base + "host")          line = base + "host=" + env.host;
             else if (lineKey == base + "port")     line = base + "port=" + env.port;
-            else if (lineKey == base + "username") line = base + "username=" + env.username;
-            else if (lineKey == base + "password") line = base + "password=" + env.password;
+            else if (lineKey == base + "username") line = base + "username=" + FDACrypto::encrypt(env.username);
+            else if (lineKey == base + "password") line = base + "password=" + FDACrypto::encrypt(env.password);
             else if (lineKey == base + "bankId")   line = base + "bankId=" + env.bankId;
             else if (lineKey == base + "bePath")   line = base + "bePath=" + env.bePath;
             else if (lineKey == base + "fePath")   line = base + "fePath=" + env.fePath;
