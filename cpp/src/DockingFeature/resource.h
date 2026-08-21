@@ -102,5 +102,8 @@
 #define IDC_MENU_EDIT_FIELD            5063
 #define IDC_MENU_DELETE_FIELD          5064
 #define IDC_MENU_GENERATE              5065
+
+#define IDD_FDA_DEPLOY_ENV_SELECT_DIALOG   5077
+#define IDC_DEPLOY_ENV_LIST                5078
 #endif // RESOURCE_H
 

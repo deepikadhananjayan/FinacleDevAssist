@@ -15,6 +15,8 @@
 #include "../Configuration/FDAConfig.h"
 #include "../Models/CustomMenuModel.h"
 #include "../Dialogs/CustomMenuDialog.h"
+#include "../Dialogs/DeploySourceDialog.h"
+#include "../Models/DeploySourceData.h"
 
 #pragma comment(lib, "Version.lib")
 
@@ -342,23 +344,59 @@ void FDAApplication::handleGenerateCustomMenu()
 
 void FDAApplication::handleDeployCustomMenu()
 {
-    //if (state != FDAApplicationState::READY)
-    //{
-    //    MessageBox(
-    //        nppData._nppHandle,
-    //        TEXT("FDA Plugin is not initialized."),
-    //        TEXT("Finacle Dev Assist"),
-    //        MB_OK | MB_ICONINFORMATION
-    //    );
-    //    return;
-    //}
+    if (state != FDAApplicationState::READY)
+    {
+        MessageBox(
+            nppData._nppHandle,
+            TEXT("FDA Plugin is not initialized."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONINFORMATION
+        );
+        return;
+    }
 
-    MessageBox(
+    std::vector<std::string> envNames = FDAConfig::getC24EnvironmentNames();
+    if (envNames.empty())
+    {
+        MessageBox(
+            nppData._nppHandle,
+            TEXT("No C24 environment is configured.\n\nPlease add one in Properties before deploying."),
+            TEXT("Finacle Dev Assist"),
+            MB_OK | MB_ICONWARNING
+        );
+
+        DialogBox(
+            FDAApplication::getModuleHandle(),
+            MAKEINTRESOURCE(IDD_FDA_PROPERTIES_DIALOG),
+            nppData._nppHandle,
+            PropertiesDialogProc
+        );
+        return;
+    }
+
+    std::string folderPath = browserForFolder(nppData._nppHandle);
+    if (folderPath.empty())
+        return;
+
+    DeployEnvSelectParams envParams;
+    envParams.environmentNames = envNames;
+
+    INT_PTR envResult = DialogBoxParam(
+        FDAApplication::getModuleHandle(),
+        MAKEINTRESOURCE(IDD_FDA_DEPLOY_ENV_SELECT_DIALOG),
         nppData._nppHandle,
-        TEXT("Deploy Source Feature is Under Development!."),
-        TEXT("Finacle Dev Assist"),
-        MB_OK | MB_ICONINFORMATION
+        DeployEnvSelectDialogProc,
+        reinterpret_cast<LPARAM>(&envParams)
     );
+
+    if (envResult != IDOK || envParams.selectedEnvironment.empty())
+        return;
+
+    DeploySourceData deployData;
+    deployData.folderPath = folderPath;
+    deployData.environmentName = envParams.selectedEnvironment;
+
+    worker->submit({ TaskType::DEPLOY_CUSTOM_MENU, deployData });
 }
 
 void FDAApplication::handleFIExecution()

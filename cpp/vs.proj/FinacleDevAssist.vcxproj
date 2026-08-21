@@ -29,6 +29,7 @@
   <ItemGroup>
     <ClInclude Include="..\src\Communication\FDAClient.h" />
     <ClInclude Include="..\src\Communication\Handlers\CodeBeautifierHandler.h" />
+    <ClInclude Include="..\src\Communication\Handlers\DeploySourceHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\FIExecutionHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\GenerateCustomMenuHandler.h" />
     <ClInclude Include="..\src\Communication\Handlers\RequestHandler.h" />
@@ -41,6 +42,7 @@
     <ClInclude Include="..\src\Core\TokenStore.h" />
     <ClInclude Include="..\src\Dialogs\BeautifyLanguageDialog.h" />
     <ClInclude Include="..\src\Dialogs\CustomMenuDialog.h" />
+    <ClInclude Include="..\src\Dialogs\DeploySourceDialog.h" />
     <ClInclude Include="..\src\Dialogs\FIRequestDialog.h" />
     <ClInclude Include="..\src\Dialogs\OptionDialog.h" />
     <ClInclude Include="..\src\Dialogs\PropertiesDialog.h" />
@@ -57,6 +59,7 @@
     <ClInclude Include="..\src\menuCmdID.h" />
     <ClInclude Include="..\src\Models\BeautifyData.h" />
     <ClInclude Include="..\src\Models\CustomMenuModel.h" />
+    <ClInclude Include="..\src\Models\DeploySourceData.h" />
     <ClInclude Include="..\src\Models\FIRequestData.h" />
     <ClInclude Include="..\src\Models\Issue.h" />
     <ClInclude Include="..\src\Models\Task.h" />
@@ -70,12 +73,14 @@
     <ClInclude Include="..\src\Sci_Position.h" />
     <ClInclude Include="..\src\Threading\TaskQueue.h" />
     <ClInclude Include="..\src\Threading\Worker.h" />
+    <ClInclude Include="..\src\Utils\FDACrypto.h" />
     <ClInclude Include="..\src\Utils\Logger.h" />
     <ClInclude Include="..\src\Utils\StringConvert.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Communication\FDAClient.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\CodeBeautifierHandler.cpp" />
+    <ClCompile Include="..\src\Communication\Handlers\DeploySourceHandler.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\FIExecutionHandler.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\GenerateCustomMenuHandler.cpp" />
     <ClCompile Include="..\src\Communication\Handlers\TokenHandler.cpp" />
@@ -86,6 +91,7 @@
     <ClCompile Include="..\src\Core\TokenStore.cpp" />
     <ClCompile Include="..\src\Dialogs\BeautifyLanguageDialog.cpp" />
     <ClCompile Include="..\src\Dialogs\CustomMenuDialog.cpp" />
+    <ClCompile Include="..\src\Dialogs\DeploySourceDialog.cpp" />
     <ClCompile Include="..\src\Dialogs\FieldDialog.cpp" />
     <ClCompile Include="..\src\Dialogs\FIRequestDialog.cpp" />
     <ClCompile Include="..\src\Dialogs\OptionDialog.cpp" />
@@ -100,6 +106,7 @@
     <ClCompile Include="..\src\Process\JavaProcess.cpp" />
     <ClCompile Include="..\src\Threading\TaskQueue.cpp" />
     <ClCompile Include="..\src\Threading\Worker.cpp" />
+    <ClCompile Include="..\src\Utils\FDACrypto.cpp" />
     <ClCompile Include="..\src\Utils\Logger.cpp" />
     <ClCompile Include="..\src\Utils\StringConvert.cpp" />
   </ItemGroup>

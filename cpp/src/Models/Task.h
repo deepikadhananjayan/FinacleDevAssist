@@ -5,6 +5,7 @@
 #include "BeautifyData.h"
 #include "FIRequestData.h"
 #include "CustomMenuModel.h"
+#include "DeploySourceData.h"
 
 enum class TaskType
 {
@@ -28,6 +29,7 @@ struct Task
         std::string,
         BeautifyData,
         FIRequestData,
-        CustomMenuData
+        CustomMenuData,
+        DeploySourceData
     > data;
 };

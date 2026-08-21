@@ -9,6 +9,7 @@
 #include "../Communication/Handlers/CodeBeautifierHandler.h"
 #include "../Communication/Handlers/FIExecutionHandler.h"
 #include "../Communication/Handlers/GenerateCustomMenuHandler.h"
+#include "../Communication/Handlers/DeploySourceHandler.h"
 
 Worker::Worker()
 {
@@ -20,6 +21,7 @@ Worker::Worker()
     codeBeautifierHandler = std::make_unique<CodeBeautifierHandler>(client.get());
     fiExecutionHandler = std::make_unique<FIExecutionHandler>(client.get());
     generateCustomMenuHandler = std::make_unique<GenerateCustomMenuHandler>(client.get());
+    deploySourceHandler = std::make_unique<DeploySourceHandler>(client.get());
 }
 
 Worker::~Worker() = default;
@@ -155,7 +157,8 @@ void Worker::run()
 
             try
             {
-                // TODO
+                const DeploySourceData& data = std::get<DeploySourceData>(task.data);
+                deploySourceHandler->deploy(data);
             }
             catch (const std::exception& e)
             {

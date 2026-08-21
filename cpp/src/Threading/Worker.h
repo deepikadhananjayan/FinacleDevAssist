@@ -15,6 +15,7 @@ class ValidationHandler;
 class CodeBeautifierHandler;
 class FIExecutionHandler;
 class GenerateCustomMenuHandler;
+class DeploySourceHandler;
 
 class Worker
 {
@@ -40,4 +41,5 @@ private:
     std::unique_ptr<CodeBeautifierHandler> codeBeautifierHandler;
     std::unique_ptr<FIExecutionHandler> fiExecutionHandler;
     std::unique_ptr<GenerateCustomMenuHandler> generateCustomMenuHandler;
+    std::unique_ptr<DeploySourceHandler> deploySourceHandler;
 };
