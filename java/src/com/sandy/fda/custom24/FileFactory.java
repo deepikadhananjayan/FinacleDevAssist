@@ -16,17 +16,19 @@ import com.sandy.fda.models.custom24.enums.FileType;
 
 public class FileFactory {
     private final Map<FileType, IFileGenerator> fileGenerators = new HashMap<>();
+    private TemplateService templateService;
 
     public FileFactory() {
-        fileGenerators.put(FileType.GINC, new GincGenerator());
-        fileGenerators.put(FileType.INC, new IncGenerator());
-        fileGenerators.put(FileType.INFENG, new InfengGenerator());
-        fileGenerators.put(FileType.PROPS, new PropGenerator());
-        fileGenerators.put(FileType.LINK, new LinkGenerator());
-        fileGenerators.put(FileType.GLINK, new GlinkGenerator());
-        fileGenerators.put(FileType.XML, new XmlGenerator());
-        fileGenerators.put(FileType.HELP, new HelpGenerator());
-        fileGenerators.put(FileType.SQL, new SqlGenerator());
+        this.templateService = new TemplateService();
+        fileGenerators.put(FileType.GINC, new GincGenerator(templateService));
+        fileGenerators.put(FileType.INC, new IncGenerator(templateService));
+        fileGenerators.put(FileType.INFENG, new InfengGenerator(templateService));
+        fileGenerators.put(FileType.PROPS, new PropGenerator(templateService));
+        fileGenerators.put(FileType.LINK, new LinkGenerator(templateService));
+        fileGenerators.put(FileType.GLINK, new GlinkGenerator(templateService));
+        fileGenerators.put(FileType.XML, new XmlGenerator(templateService));
+        fileGenerators.put(FileType.HELP, new HelpGenerator(templateService));
+        fileGenerators.put(FileType.SQL, new SqlGenerator(templateService));
     }
 
     public IFileGenerator getFileGenerator(FileType type) {
