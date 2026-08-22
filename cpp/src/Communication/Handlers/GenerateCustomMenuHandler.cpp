@@ -35,14 +35,14 @@ void GenerateCustomMenuHandler::generateMenu(const CustomMenuData& data)
     {
         json fieldJson;
 
-        fieldJson["fieldPlacement"] = field.fieldPlacement;
-        fieldJson["fieldType"] = field.fieldType;
-        fieldJson["fieldLabel"] = field.fieldLabel;
-        fieldJson["fieldId"] = field.fieldId;
-        fieldJson["fieldDescription"] = field.fieldDescription;
+        fieldJson["pageType"] = field.fieldPlacement;
+        fieldJson["type"] = field.fieldType;
+        fieldJson["label"] = field.fieldLabel;
+        fieldJson["id"] = field.fieldId;
+        fieldJson["description"] = field.fieldDescription;
         fieldJson["searcher"] = field.searcher;
-        fieldJson["isDisabled"] = field.isDisabled;
-        fieldJson["isMandatory"] = field.isMandatory;
+        fieldJson["disabled"] = field.isDisabled;
+        fieldJson["mandatory"] = field.isMandatory;
 
         fieldJson["options"] = json::array();
 
