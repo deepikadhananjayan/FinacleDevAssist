@@ -14,8 +14,9 @@ import com.sandy.fda.models.custom24.enums.MenuType;
 
 public class TemplateService {
 
-    public String render(String template, Map<String, String> values) throws Exception {
-        String result = load(template);
+    public String render(String template, Map<String, String> values, boolean load) throws Exception {
+        String result = load ? load(template) : template;
+
         for (Map.Entry<String, String> entry : values.entrySet()) {
             result = result.replace(
                     "{{" + entry.getKey() + "}}",
@@ -24,7 +25,7 @@ public class TemplateService {
         return result;
     }
 
-    private String load(String template) throws IOException {
+    public String load(String template) throws IOException {
 
         // try (InputStream inputStream = getClass().getClassLoader()
         // .getResourceAsStream("templates/" + template)) {
@@ -57,6 +58,26 @@ public class TemplateService {
                         "Validate",
                         "Ok",
                         "Cancel");
+
+            default -> Collections.emptyList();
+        };
+    }
+
+    public List<String> getInvocationButtons(MenuType menuType) {
+        return switch (menuType) {
+            case UPLOAD ->
+                Arrays.asList("UPLOAD");
+            case TWO_PAGE ->
+                Arrays.asList("SUBMIT", "VALIDATE");
+            case THREE_PAGE,
+                    MRH_TYPE1,
+                    MRH_TYPE2,
+                    MRH_TYPE3,
+                    MRM ->
+                Arrays.asList(
+                        "GETDATA",
+                        "SUBMIT",
+                        "VALIDATE");
 
             default -> Collections.emptyList();
         };

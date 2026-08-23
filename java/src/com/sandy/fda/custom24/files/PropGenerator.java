@@ -23,14 +23,11 @@ public class PropGenerator implements IFileGenerator {
 
     @Override
     public String generate(Menu menuDetails) {
-
         FDALogger.info("Generating PROP File");
 
         List<Field> fields = menuDetails.fields();
-
         List<String> buttons = templateService.getButtons(menuDetails.menuType());
-
-        String propsContent = createPropsContent(fields, buttons);
+        String propsContent = buildPropsContent(fields, buttons);
         
         Map<String, String> values = Map.of(
                 "c24", menuDetails.menuName().toLowerCase(),
@@ -39,7 +36,8 @@ public class PropGenerator implements IFileGenerator {
         try {
             propsContent = templateService.render(
                     "props-content.tpl",
-                    values);
+                    values,
+                    true);
         } catch (Exception e) {
             e.printStackTrace();
             return "FAILURE";
@@ -50,7 +48,7 @@ public class PropGenerator implements IFileGenerator {
         return "SUCCESS";
     }
 
-    private String createPropsContent(List<Field> fields, List<String> buttons) {
+    private String buildPropsContent(List<Field> fields, List<String> buttons) {
 
         StringBuilder propsContent = new StringBuilder();
 
