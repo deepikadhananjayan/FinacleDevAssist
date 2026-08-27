@@ -100,6 +100,7 @@ public class FDASocket {
             String raw;
 
             while (!shutdown && (raw = in.readLine()) != null) {
+                FDALogger.info(raw);
                 JsonObject req = gson.fromJson(raw, JsonObject.class);
                 String type = req.remove("type").getAsString();
                 JsonObject response = new JsonObject();
@@ -163,8 +164,6 @@ public class FDASocket {
                     response.addProperty("STATUS", "EXCEPTION");
                     response.addProperty("EXCEPTION", excpMsg);
                 }
-
-                FDALogger.info(response.toString());
 
                 out.println(response.toString());
                 out.flush();
