@@ -35,9 +35,10 @@ public class PropGenerator implements IFileGenerator {
         
         try {
             propsContent = templateService.render(
-                    "props-content.tpl",
+                    "props\\props-content.tpl",
                     values,
                     true);
+            templateService.beautify(propsContent, "JS");
         } catch (Exception e) {
             e.printStackTrace();
             return "FAILURE";

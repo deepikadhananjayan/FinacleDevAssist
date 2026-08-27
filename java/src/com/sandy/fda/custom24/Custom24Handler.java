@@ -11,6 +11,7 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.jcraft.jsch.JSchException;
+import com.sandy.fda.beautifier.Beautifier;
 import com.sandy.fda.models.custom24.C24Environment;
 import com.sandy.fda.models.custom24.Menu;
 import com.sandy.fda.models.custom24.enums.FileType;
@@ -21,8 +22,8 @@ public class Custom24Handler {
     private FileFactory fileFactory;
     private SFTPHandler sftpHandler;
 
-    public Custom24Handler() {
-        this.fileFactory = new FileFactory();
+    public Custom24Handler(Beautifier beautifier) {
+        this.fileFactory = new FileFactory(beautifier);
         this.sftpHandler = new SFTPHandler();
     }
 

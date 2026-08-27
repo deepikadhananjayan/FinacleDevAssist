@@ -51,6 +51,7 @@ public class XmlGenerator implements IFileGenerator {
                             "xml\\xml-content.tpl",
                             values,
                             true));
+            templateService.beautify(xmlContent.toString(), "XML");
         } catch (Exception e) {
             e.printStackTrace();
             return "FAILURE";

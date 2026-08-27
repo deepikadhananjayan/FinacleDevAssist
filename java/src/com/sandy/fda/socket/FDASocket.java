@@ -29,10 +29,10 @@ public class FDASocket {
 
     public FDASocket() {
         this.tokenParser = new TokenParser();
-        this.custom24Handler = new Custom24Handler();
         this.tokenizer = new Tokenizer(tokenParser);
         this.scriptValidator = new ScriptValidator(tokenParser, tokenizer);
         this.beautifier = new Beautifier(tokenParser, tokenizer);
+        this.custom24Handler = new Custom24Handler(beautifier);
         try {
             this.finacleInterfaceHandler = new FinacleInterfaceHandler(beautifier);
         } catch (Exception e) {

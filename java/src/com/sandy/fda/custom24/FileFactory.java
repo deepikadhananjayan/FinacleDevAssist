@@ -3,6 +3,7 @@ package com.sandy.fda.custom24;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sandy.fda.beautifier.Beautifier;
 import com.sandy.fda.custom24.files.GincGenerator;
 import com.sandy.fda.custom24.files.GlinkGenerator;
 import com.sandy.fda.custom24.files.HelpGenerator;
@@ -18,8 +19,8 @@ public class FileFactory {
     private final Map<FileType, IFileGenerator> fileGenerators = new HashMap<>();
     private TemplateService templateService;
 
-    public FileFactory() {
-        this.templateService = new TemplateService();
+    public FileFactory(Beautifier beautifier) {
+        this.templateService = new TemplateService(beautifier);
         fileGenerators.put(FileType.GINC, new GincGenerator(templateService));
         fileGenerators.put(FileType.INC, new IncGenerator(templateService));
         fileGenerators.put(FileType.INFENG, new InfengGenerator(templateService));

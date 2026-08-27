@@ -10,9 +10,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.JsonObject;
+import com.sandy.fda.beautifier.Beautifier;
 import com.sandy.fda.models.custom24.enums.MenuType;
 
 public class TemplateService {
+
+    private Beautifier beautifier;
+
+    public TemplateService(Beautifier beautifier) {
+        this.beautifier = beautifier;
+    }
 
     public String render(String template, Map<String, String> values, boolean load) throws Exception {
         String result = load ? load(template) : template;
@@ -81,5 +89,12 @@ public class TemplateService {
 
             default -> Collections.emptyList();
         };
+    }
+
+    public String beautify(String content, String type) throws Exception {
+        JsonObject beautifyData = new JsonObject();
+        beautifyData.addProperty("contentType", type);
+        beautifyData.addProperty("content", content);
+        return beautifier.beautifyCode(beautifyData).get("beautifiedCode").getAsString();
     }
 }
