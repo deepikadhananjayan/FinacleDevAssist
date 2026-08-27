@@ -61,47 +61,153 @@ ValidationResult ValidationHandler::parse(const std::string& response)
     {
         json data = json::parse(response);
 
-        if (data["STATUS"] != "SUCCESS")
+        Logger::info("[VALIDATION] Response JSON : " + data.dump());
+
+        if (!data.contains("STATUS"))
         {
+            Logger::error("[VALIDATION] STATUS missing");
             result.excpOccr = true;
-            Logger::error("[VALIDATION] " + data["EXCEPTION"]);
             return result;
         }
 
-        for (const auto& error : data["errors"])
+        Logger::info("[VALIDATION] STATUS type : " + std::string(data["STATUS"].type_name()));
+
+        if (!data["STATUS"].is_string())
         {
-            Issue issue;
-
-            issue.line = error["line"].get<int>();
-            issue.message = error["message"].get<std::string>();
-            issue.type = IssueType::SCR_ERROR;
-
-            result.errors.push_back(issue);
+            Logger::error("[VALIDATION] STATUS has unexpected type : " + std::string(data["STATUS"].type_name()));
+            result.excpOccr = true;
+            return result;
         }
 
-        for (const auto& warning : data["warnings"])
+        if (data["STATUS"] != "SUCCESS")
         {
-            Issue issue;
+            result.excpOccr = true;
 
-            issue.line = warning["line"].get<int>();
-            issue.message = warning["message"].get<std::string>();
-            issue.type = IssueType::SCR_WARNING;
+            if (data.contains("EXCEPTION"))
+            {
+                if (data["EXCEPTION"].is_string())
+                {
+                    std::string exceptionMessage = data["EXCEPTION"].get<std::string>();
+                    Logger::error("[VALIDATION] " + exceptionMessage);
+                }
+                else
+                {
+                    Logger::error("[VALIDATION] EXCEPTION has unexpected type : " + std::string(data["EXCEPTION"].type_name()));
+                }
+            }
+            else
+            {
+                Logger::error("[VALIDATION] EXCEPTION missing");
+            }
 
-            result.warnings.push_back(issue);
+            return result;
+        }
+
+        Logger::info("[VALIDATION] SUCCESS received");
+
+        if (data.contains("errors"))
+        {
+            if (!data["errors"].is_array())
+            {
+                Logger::error("[VALIDATION] errors has unexpected type : " + std::string(data["errors"].type_name()));
+                result.excpOccr = true;
+                return result;
+            }
+
+            for (const auto& error : data["errors"])
+            {
+                if (!error.contains("line") || !error.contains("message"))
+                {
+                    Logger::error("[VALIDATION] Invalid error entry");
+                    continue;
+                }
+
+                if (!error["line"].is_number_integer())
+                {
+                    Logger::error("[VALIDATION] Error line has unexpected type : " + std::string(error["line"].type_name()));
+                    continue;
+                }
+
+                if (!error["message"].is_string())
+                {
+                    Logger::error("[VALIDATION] Error message has unexpected type : " + std::string(error["message"].type_name()));
+                    continue;
+                }
+
+                Issue issue;
+                issue.line = error["line"].get<int>();
+                issue.message = error["message"].get<std::string>();
+                issue.type = IssueType::SCR_ERROR;
+
+                result.errors.push_back(issue);
+            }
+        }
+        else
+        {
+            Logger::info("[VALIDATION] errors field missing");
+        }
+
+        if (data.contains("warnings"))
+        {
+            if (!data["warnings"].is_array())
+            {
+                Logger::error("[VALIDATION] warnings has unexpected type : " + std::string(data["warnings"].type_name()));
+                result.excpOccr = true;
+                return result;
+            }
+
+            for (const auto& warning : data["warnings"])
+            {
+                if (!warning.contains("line") || !warning.contains("message"))
+                {
+                    Logger::error("[VALIDATION] Invalid warning entry");
+                    continue;
+                }
+
+                if (!warning["line"].is_number_integer())
+                {
+                    Logger::error("[VALIDATION] Warning line has unexpected type : " + std::string(warning["line"].type_name()));
+                    continue;
+                }
+
+                if (!warning["message"].is_string())
+                {
+                    Logger::error("[VALIDATION] Warning message has unexpected type : " + std::string(warning["message"].type_name()));
+                    continue;
+                }
+
+                Issue issue;
+                issue.line = warning["line"].get<int>();
+                issue.message = warning["message"].get<std::string>();
+                issue.type = IssueType::SCR_WARNING;
+
+                result.warnings.push_back(issue);
+            }
+        }
+        else
+        {
+            Logger::info("[VALIDATION] warnings field missing");
         }
 
         if (result.errors.empty() && result.warnings.empty())
         {
             result.noErrors = true;
-
-            Logger::info("No Errors");
+            Logger::info("[VALIDATION] No Errors or Warnings");
         }
 
         Logger::info("[VALIDATION] Validated Successfully");
     }
+    catch (const json::parse_error& e)
+    {
+        Logger::error("[VALIDATION] JSON parse failed : " + std::string(e.what()));
+    }
+    catch (const json::type_error& e)
+    {
+        Logger::error("[VALIDATION] JSON type error : " + std::string(e.what()));
+    }
     catch (const std::exception& e)
     {
-        Logger::error("[VALIDATION] Parse failed : " + std::string(e.what()));
+        Logger::error("[VALIDATION] Unexpected error : " + std::string(e.what()));
     }
 
     return result;

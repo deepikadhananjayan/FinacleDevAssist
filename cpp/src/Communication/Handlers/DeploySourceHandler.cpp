@@ -41,9 +41,14 @@ void DeploySourceHandler::parse(const std::string& response)
     {
         json result = json::parse(response);
 
-        if (result["STATUS"] == "NET_CNT_EXCP")
+        Logger::info("[DEPLOY] Response JSON : " + result.dump());
+
+        std::string status = result.value("STATUS", "");
+
+        if (status == "NET_CNT_EXCP")
         {
-            std::string exceptionMessage = result["EXCEPTION"].get<std::string>();
+            std::string exceptionMessage =
+                result.value("EXCEPTION", "Network connection failed.");
 
             MessageBoxA(
                 nppData._nppHandle,
@@ -55,31 +60,42 @@ void DeploySourceHandler::parse(const std::string& response)
             Logger::error("[DEPLOY] " + exceptionMessage);
             return;
         }
-        
-        if (result["STATUS"] != "SUCCESS")
+
+        if (status != "SUCCESS")
         {
-            MessageBox(
+            std::string exceptionMessage =
+                result.value("EXCEPTION", "Unexpected Error Occurred.");
+
+            MessageBoxA(
                 nppData._nppHandle,
-                TEXT("Unexpected Error Occured."),
-                TEXT("Finacle Dev Assist"),
-                MB_OK | MB_ICONINFORMATION
+                exceptionMessage.c_str(),
+                "Finacle Dev Assist",
+                MB_OK | MB_ICONERROR
             );
 
-            Logger::error("[DEPLOY] " + result["EXCEPTION"]);
+            Logger::error("[DEPLOY] " + exceptionMessage);
             return;
         }
 
-        MessageBox(
+        MessageBoxA(
             nppData._nppHandle,
-            TEXT("Deployed Successfully."),
-            TEXT("Finacle Dev Assist"),
+            "Deployed Successfully.",
+            "Finacle Dev Assist",
             MB_OK | MB_ICONINFORMATION
         );
 
         Logger::info("[DEPLOY] Deployed successfully");
     }
+    catch (const json::parse_error& e)
+    {
+        Logger::error("[DEPLOY] JSON parse failed : " + std::string(e.what()));
+    }
+    catch (const json::type_error& e)
+    {
+        Logger::error("[DEPLOY] JSON type error : " + std::string(e.what()));
+    }
     catch (const std::exception& e)
     {
-        Logger::error("[DEPLOY] Parse failed : " + std::string(e.what()));
+        Logger::error("[DEPLOY] Unexpected error : " + std::string(e.what()));
     }
 }

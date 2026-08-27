@@ -75,8 +75,6 @@ bool FDAClient::sendRequest(const std::string& request, std::string& response)
         return false;
     }
 
-    Logger::debug("[CLIENT] Sending : " + request);
-
     std::string reqMsg = request + "\n";
 
     int sent = ::send(socket, reqMsg.c_str(), (int)reqMsg.length(), 0);

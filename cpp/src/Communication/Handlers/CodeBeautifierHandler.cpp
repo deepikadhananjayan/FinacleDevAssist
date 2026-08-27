@@ -43,20 +43,71 @@ void CodeBeautifierHandler::parse(const std::string& response)
     {
         json result = json::parse(response);
 
-        if (result["STATUS"] != "SUCCESS") {
+        Logger::info("[BEAUTIFY] Response JSON : " + result.dump());
 
-            MessageBox(
+        std::string status = result.value("STATUS", "");
+
+        if (status.empty())
+        {
+            Logger::error("[BEAUTIFY] STATUS missing");
+
+            MessageBoxA(
                 nppData._nppHandle,
-                TEXT("Unexpected Error Occured."),
-                TEXT("Finacle Dev Assist"),
-                MB_OK | MB_ICONINFORMATION
+                "Unexpected Error Occurred.",
+                "Finacle Dev Assist",
+                MB_OK | MB_ICONERROR
             );
 
-            Logger::error("[BEAUTIFY] " + result["EXCEPTION"]);
             return;
         }
 
-        std::string beautifiedCode = result["beautifiedCode"];
+        if (status != "SUCCESS")
+        {
+            std::string exceptionMessage =
+                result.value("EXCEPTION", "Unexpected Error Occurred.");
+
+            MessageBoxA(
+                nppData._nppHandle,
+                exceptionMessage.c_str(),
+                "Finacle Dev Assist",
+                MB_OK | MB_ICONERROR
+            );
+
+            Logger::error("[BEAUTIFY] " + exceptionMessage);
+            return;
+        }
+
+        Logger::info("[BEAUTIFY] SUCCESS received");
+
+        if (!result.contains("beautifiedCode"))
+        {
+            Logger::error("[BEAUTIFY] beautifiedCode missing");
+
+            MessageBoxA(
+                nppData._nppHandle,
+                "Unexpected Error Occurred.",
+                "Finacle Dev Assist",
+                MB_OK | MB_ICONERROR
+            );
+
+            return;
+        }
+
+        if (!result["beautifiedCode"].is_string())
+        {
+            Logger::error("[BEAUTIFY] beautifiedCode has invalid type : " + std::string(result["beautifiedCode"].type_name()));
+
+            MessageBoxA(
+                nppData._nppHandle,
+                "Unexpected Error Occurred.",
+                "Finacle Dev Assist",
+                MB_OK | MB_ICONERROR
+            );
+
+            return;
+        }
+
+        std::string beautifiedCode = result["beautifiedCode"].get<std::string>();
 
         if (hasSelection)
         {
@@ -66,11 +117,19 @@ void CodeBeautifierHandler::parse(const std::string& response)
         {
             ScintillaHelper::replaceCurrentDocument(beautifiedCode);
         }
-        
+
         Logger::info("[BEAUTIFY] Code Beautified successfully");
+    }
+    catch (const json::parse_error& e)
+    {
+        Logger::error("[BEAUTIFY] JSON parse failed : " + std::string(e.what()));
+    }
+    catch (const json::type_error& e)
+    {
+        Logger::error("[BEAUTIFY] JSON type error : " + std::string(e.what()));
     }
     catch (const std::exception& e)
     {
-        Logger::error("[BEAUTIFY] Parse failed : " + std::string(e.what()));
+        Logger::error("[BEAUTIFY] Unexpected error : " + std::string(e.what()));
     }
 }

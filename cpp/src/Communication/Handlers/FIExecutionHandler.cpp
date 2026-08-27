@@ -50,25 +50,72 @@ void FIExecutionHandler::parse(const std::string& response)
     {
         json result = json::parse(response);
 
-        if (result["STATUS"] == "EXCEPTION")
+        Logger::info("[FI] Response JSON : " + result.dump());
+
+        if (!result.contains("STATUS"))
         {
-            std::string exceptionMessage = result["EXCEPTION"].get<std::string>();
-
-            MessageBoxA(
-                nppData._nppHandle,
-                exceptionMessage.c_str(),
-                "Finacle Dev Assist",
-                MB_OK | MB_ICONWARNING
-            );
-
-            Logger::error("[FI] " + exceptionMessage);
+            Logger::error("[FI] STATUS missing");
             return;
         }
 
-        // Open a new file next to the current tab
-        ::SendMessage(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
+        Logger::info("[FI] STATUS type : " + std::string(result["STATUS"].type_name()));
 
-        // Get the handle of the newly opened editor
+        if (result["STATUS"] != "SUCCESS")
+        {
+            MessageBox(
+                nppData._nppHandle,
+                TEXT("Unexpected Error Occurred."),
+                TEXT("Finacle Dev Assist"),
+                MB_OK | MB_ICONINFORMATION
+            );
+
+            if (result.contains("EXCEPTION"))
+            {
+                if (result["EXCEPTION"].is_string())
+                {
+                    std::string exceptionMessage = result["EXCEPTION"].get<std::string>();
+                    Logger::error("[FI] " + exceptionMessage);
+                }
+                else
+                {
+                    Logger::error("[FI] EXCEPTION has unexpected type : " + std::string(result["EXCEPTION"].type_name()));
+                }
+            }
+            else
+            {
+                Logger::error("[FI] EXCEPTION missing");
+            }
+
+            return;
+        }
+
+        Logger::info("[FI] SUCCESS received");
+
+        if (!result.contains("response"))
+        {
+            Logger::error("[FI] response missing");
+            return;
+        }
+
+        Logger::info("[FI] response type : " + std::string(result["response"].type_name()));
+
+        if (!result["response"].is_string())
+        {
+            Logger::error("[FI] response has unexpected type : " + std::string(result["response"].type_name()));
+            return;
+        }
+
+        std::string fiResponse = result["response"].get<std::string>();
+
+        Logger::info("[FI] Opening new file");
+
+        ::SendMessage(
+            nppData._nppHandle,
+            NPPM_MENUCOMMAND,
+            0,
+            IDM_FILE_NEW
+        );
+
         HWND hNewEditor = ScintillaHelper::getCurrentEditor();
 
         if (hNewEditor == nullptr)
@@ -77,18 +124,34 @@ void FIExecutionHandler::parse(const std::string& response)
             return;
         }
 
-        std::string fiResponse = result["response"].get<std::string>();
+        Logger::info("[FI] Setting FI response into new file");
 
-        // Set the content into the new file
-        ::SendMessage(hNewEditor, SCI_SETTEXT, 0, reinterpret_cast<LPARAM>(fiResponse.c_str()));
+        ::SendMessage(
+            hNewEditor,
+            SCI_SETTEXT,
+            0,
+            reinterpret_cast<LPARAM>(fiResponse.c_str())
+        );
 
-        // Move cursor to top
-        ::SendMessage(hNewEditor, SCI_GOTOPOS, 0, 0);
+        ::SendMessage(
+            hNewEditor,
+            SCI_GOTOPOS,
+            0,
+            0
+        );
 
-        Logger::info("[FI] FI Response Showed in New File.");
+        Logger::info("[FI] FI Response showed in new file.");
+    }
+    catch (const json::parse_error& e)
+    {
+        Logger::error("[FI] JSON parse failed : " + std::string(e.what()));
+    }
+    catch (const json::type_error& e)
+    {
+        Logger::error("[FI] JSON type error : " + std::string(e.what()));
     }
     catch (const std::exception& e)
     {
-        Logger::error("[FI] Parse failed : " + std::string(e.what()));
+        Logger::error("[FI] Unexpected error : " + std::string(e.what()));
     }
 }
