@@ -102,7 +102,16 @@ bool JavaProcess::start()
 
     Logger::info("[JAVA] Starting process");
 
-    std::wstring command = L"\"" + javaPath + L"\" -jar \"" + jarPath + L"\"";
+    std::wstring command = L"\"" + javaPath + L"\" "
+        L"--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED "
+        L"--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED "
+        L"--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED "
+        L"--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED "
+        L"--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED "
+        L"--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED "
+        L"--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED "
+        L"-jar \"" + jarPath + L"\"";
+
     std::vector<wchar_t> cmdLine(command.begin(), command.end());
     cmdLine.push_back(0);
 

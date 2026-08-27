@@ -53,9 +53,18 @@ void Worker::run()
                 break;
             }
 
-            Logger::info("[WORKER] Java started successfully");
+            Logger::info("[WORKER] Java process started");
 
             Sleep(1000);
+
+            if (!javaProcess->isRunning())
+            {
+                Logger::error("[WORKER] Java process is not running");
+                FDAApplication::updateState(FDAApplicationState::NOT_INITIALIZED);
+                break;
+            }
+
+            Logger::info("[WORKER] Java process is running");
 
             Logger::info("[WORKER] Loading configuration");
 
@@ -78,6 +87,8 @@ void Worker::run()
             }
 
             Logger::info("[WORKER] Socket connected");
+
+            FDAApplication::updateState(FDAApplicationState::READY);
 
             submit({ TaskType::GET_KEYWORDS_AND_USERHOOKS });
 
