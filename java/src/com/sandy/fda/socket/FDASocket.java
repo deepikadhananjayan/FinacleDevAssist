@@ -152,7 +152,7 @@ public class FDASocket {
                             response.addProperty("message", "Unknown Request Type!");
                             break;
                     }
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     FDALogger.error(e);
                     e.printStackTrace();
                     String excpMsg = e.getClass().getSimpleName()

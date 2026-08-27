@@ -75,6 +75,21 @@ public class FDALogger {
         log("STACK TRACE", sw.toString());
     }
 
+    public static void error(Throwable e) {
+        log(
+                "ERROR",
+                e.getClass().getName()
+                        + " : "
+                        + e.getMessage());
+
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+
+        e.printStackTrace(pw);
+
+        log("STACK TRACE", sw.toString());
+    }
+
     private static void log(String level, String msg) {
 
         if (!initialized) {
