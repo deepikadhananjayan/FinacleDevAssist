@@ -3,6 +3,7 @@ package com.sandy.fda.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -43,15 +44,12 @@ public class FDAConstants {
 
                 properties.put("PROP_FILE_LOCATION", propFile.getAbsolutePath());
 
-                File tokenXml = new File(appDirectory, "tokens.xml");
-
-                if (!tokenXml.exists()) {
-                    throw new FileNotFoundException(
-                            "tokens.xml file is missing");
+                // Verify token.xml exists in resources
+                try (InputStream is = FDAConstants.class.getResourceAsStream("/resources/tokens.xml")) {
+                    if (is == null) {
+                        throw new FileNotFoundException("tokens.xml resource is missing inside JAR under /resources/");
+                    }
                 }
-                String xmlPath = tokenXml.getAbsolutePath();
-
-                properties.put("TOKEN_XML_PATH", xmlPath);
                 loaded = true;
             }
 

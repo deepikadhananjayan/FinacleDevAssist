@@ -1,6 +1,6 @@
 package com.sandy.fda.parser;
 
-import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,8 +26,8 @@ import com.sandy.fda.models.validator.enums.TokenType;
 import com.sandy.fda.utils.FDAConstants;
 
 public class TokenParser {
-    private String xmlPath;
-    
+    private InputStream xmlStream;
+
     private List<Token> allTokens;
 
     private Map<String, Token> allKeywords;
@@ -44,7 +44,7 @@ public class TokenParser {
                     "<=")));
 
     public TokenParser() {
-        this.xmlPath = FDAConstants.getProperties().get("TOKEN_XML_PATH");
+        this.xmlStream = FDAConstants.class.getResourceAsStream("/resources/tokens.xml");
         this.allKeywords = new HashMap<>();
         this.allUserhooks = new HashMap<>();
         this.allFunctions = new HashMap<>();
@@ -52,39 +52,39 @@ public class TokenParser {
 
     public JsonObject getKeywordsAndUserhooks() throws Exception {
         if (allTokens == null) {
-            allTokens = parse(xmlPath);
+            allTokens = parse();
         }
         return convertToJsonResponse();
     }
 
     public Map<String, Token> getKeywordMap() throws Exception {
         if (allTokens == null) {
-            allTokens = parse(xmlPath);
+            allTokens = parse();
         }
         return allKeywords;
     }
 
     public Map<String, Token> getFunctionMap() throws Exception {
         if (allTokens == null) {
-            allTokens = parse(xmlPath);
+            allTokens = parse();
         }
         return allFunctions;
     }
 
     public Map<String, Token> getUserhookMap() throws Exception {
         if (allTokens == null) {
-            allTokens = parse(xmlPath);
+            allTokens = parse();
         }
         return allUserhooks;
     }
 
-    private List<Token> parse(String xmlPath) throws Exception {
+    private List<Token> parse() throws Exception {
 
         List<Token> tokens = new ArrayList<>();
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc = builder.parse(new File(xmlPath));
+        Document doc = builder.parse(xmlStream);
         doc.getDocumentElement().normalize();
 
         NodeList keywordNodes = doc.getElementsByTagName("Keyword");
