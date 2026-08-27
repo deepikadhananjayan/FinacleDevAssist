@@ -6,6 +6,9 @@ public class BeautifyData {
     private ContentType contentType;
     private String content;
 
+    public BeautifyData() {
+}
+
     public BeautifyData(Builder builder) {
         this.contentType = builder.contentType;
         this.content = builder.content;
