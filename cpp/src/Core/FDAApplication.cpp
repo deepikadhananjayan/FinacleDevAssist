@@ -226,7 +226,7 @@ std::string FDAApplication::selectBeautifyContentType()
     switch (result)
     {
     case 1:
-        return "JAVA";
+        return "SCRIPT";
 
     case 2:
         return "JS";
@@ -235,7 +235,7 @@ std::string FDAApplication::selectBeautifyContentType()
         return "XML";
 
     case 4:
-        return "SCRIPT";
+        return "JAVA";
 
     default:
         return "";
