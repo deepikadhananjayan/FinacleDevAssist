@@ -68,7 +68,7 @@ void CodeBeautifierHandler::parse(const std::string& response)
 
             MessageBoxA(
                 nppData._nppHandle,
-                exceptionMessage.c_str(),
+                "Syntax error was found while beautifying the code.",
                 "Finacle Dev Assist",
                 MB_OK | MB_ICONERROR
             );
