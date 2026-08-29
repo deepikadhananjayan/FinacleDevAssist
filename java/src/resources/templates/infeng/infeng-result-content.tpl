@@ -1,5 +1,5 @@
 var jspRes={
-FLTC24001:{{c24InfengTitle}},
+FLTC24001:"{{c24InfengTitle}}",
 FLTC24002:"Ok"};
 var jspResALT = {
 };

@@ -1,5 +1,5 @@
 var jspRes={
-FLTC24001:{{c24InfengTitle}},
+FLTC24001:"{{c24InfengTitle}}",
 {{c24FLT}}
 FLTC24002:"Go",
 FLTC24003:"Clear"};

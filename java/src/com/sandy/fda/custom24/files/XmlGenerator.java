@@ -144,8 +144,8 @@ public class XmlGenerator implements IFileGenerator {
                             Map<String, String> values = Map.of(
                                     "c24", menuName,
                                     "c24InvocationButton", button,
-                                    "c24FuncCode", option.toString(),
-                                    "c24InvocationButtonLower", button.toLowerCase());
+                                    "c24FuncCode", option.value(),
+                                    "c24InvocationButtonLower", "GO");
 
                             xmlInvocationContent.append(
                                     templateService.render(
