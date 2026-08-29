@@ -1,6 +1,7 @@
 [Setup]
 AppName=FinacleDevAssist
 AppVersion=1.0
+VersionInfoVersion=1.0.0.0
 AppPublisherURL=https://github.com/santhoshswamyv
 VersionInfoCompany=Santhosh Swamy
 VersionInfoDescription=FinacleDevAssist Installer
@@ -202,6 +203,7 @@ var
   Json: String;
   Tags, DownloadUrls: TArrayOfString;
   I: Integer;
+  Tag: String;
 begin
   Result := False;
   Log('Fetching GitHub releases');
@@ -223,9 +225,14 @@ begin
     if GetArrayLength(ReleaseTags) >= MAX_RELEASES_SHOWN then Break;
     if I >= GetArrayLength(DownloadUrls) then Break;
 
+    Tag := Trim(Tags[I]);
+    { Ensure 'v' is prepended if not already present }
+    if (Length(Tag) > 0) and (Tag[1] <> 'v') and (Tag[1] <> 'V') then
+      Tag := 'v' + Tag;
+
     SetArrayLength(ReleaseTags, GetArrayLength(ReleaseTags) + 1);
     SetArrayLength(ReleaseUrls, GetArrayLength(ReleaseUrls) + 1);
-    ReleaseTags[GetArrayLength(ReleaseTags) - 1] := Tags[I];
+    ReleaseTags[GetArrayLength(ReleaseTags) - 1] := Tag;
     ReleaseUrls[GetArrayLength(ReleaseUrls) - 1] := DownloadUrls[I];
   end;
 
@@ -388,7 +395,6 @@ begin
   );
 
   CheckingPage := CreateOutputProgressPage('Checking Updates', 'Checking GitHub releases...');
-  
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -450,7 +456,7 @@ begin
     if InstalledVersion = 'Not installed' then
       ReleasePage.SubCaptionLabel.Caption := 'FinacleDevAssist is not currently installed.'
     else
-      ReleasePage.SubCaptionLabel.Caption := 'Currently installed version: ' + InstalledVersion;
+      ReleasePage.SubCaptionLabel.Caption := 'Currently installed version: v' + NormalizeVersion(InstalledVersion);
 
     ReleasePage.CheckListBox.Items.Clear;
     for I := 0 to GetArrayLength(ReleaseTags)-1 do
@@ -489,11 +495,15 @@ begin
       Abort(); { Immediately stop execution safely }
     end;
   end;
-  
-  { Execute end-of-setup logic dynamically }
-  if CurStep = ssDone then
+end;
+
+procedure DeinitializeSetup();
+var
+  LogFile: String;
+begin
+  LogFile := ExtractFileDir(ExpandConstant('{srcexe}')) + '\FDA-Installer.log';
+  if FileExists(LogFile) then
   begin
-  { Remove log file after successful install }
-  DeleteFile(ExtractFileDir(ExpandConstant('{srcexe}')) + '\FDA-Installer.log');
+    DeleteFile(LogFile);
   end;
 end;
