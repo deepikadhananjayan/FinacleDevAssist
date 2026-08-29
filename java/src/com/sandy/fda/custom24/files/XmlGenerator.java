@@ -15,6 +15,10 @@ import com.sandy.fda.utils.FDALogger;
 
 public class XmlGenerator implements IFileGenerator {
 
+    private final String XML_TEMPLATE = "xml\\xml-content.tpl";
+    private final String XML_FIELD_TEMPLATE = "xml\\xml-fieldlist-content.tpl";
+    private final String XML_MULTIREC_TEMPLATE = "xml\\xml-multirec-content.tpl";
+    private final String XML_INVOCATION_TEMPLATE = "xml\\xml-invocationlist-content.tpl";
     private final TemplateService templateService;
 
     public XmlGenerator(TemplateService templateService) {
@@ -25,7 +29,7 @@ public class XmlGenerator implements IFileGenerator {
     public String generate(Menu menuDetails) {
         FDALogger.info("Generating XML File");
 
-        StringBuilder xmlContent = new StringBuilder();
+        String xmlContent = new String();
         List<String> invocationButtons = templateService.getInvocationButtons(menuDetails.menuType());
         String critJspName = (menuDetails.menuType() == MenuType.UPLOAD || menuDetails.menuType() == MenuType.TWO_PAGE)
                 ? "cust_dummy_InitialPage.jsp"
@@ -46,18 +50,17 @@ public class XmlGenerator implements IFileGenerator {
                 "c24MultiRecList", xmlMultiRecContent,
                 "c24MultiTabList", xmlMultiTabContent);
         try {
-            xmlContent
-                    .append(templateService.render(
-                            "xml\\xml-content.tpl",
-                            values,
-                            true));
-            templateService.beautify(xmlContent.toString(), "XML");
+            xmlContent = templateService.render(
+                    XML_TEMPLATE,
+                    values,
+                    true);
+            xmlContent = templateService.beautify(xmlContent, "XML");
         } catch (Exception e) {
             e.printStackTrace();
             return "FAILURE";
         }
+
         System.out.println(xmlContent);
-        // Write to File
         return "SUCCESS";
     }
 
@@ -68,7 +71,7 @@ public class XmlGenerator implements IFileGenerator {
                 || menuType == MenuType.THREE_PAGE) ? "N" : "Y";
 
         try {
-            String template = templateService.load("xml\\xml-fieldlist-content.tpl");
+            String template = templateService.load(XML_FIELD_TEMPLATE);
             for (Field field : fields) {
                 values = Map.of(
                         "c24FieldId", field.id(),
@@ -92,24 +95,20 @@ public class XmlGenerator implements IFileGenerator {
                 || menuType == MenuType.MRH_TYPE2
                 || menuType == MenuType.MRH_TYPE3) {
 
-            int mrhFieldCnt = 0;
-            String mrhType = "" + menuType;
-            mrhType.replace("_TYPE", "");
+            String mrhType = menuType.name().replace("_TYPE", "");
 
-            for (Field field : fields) {
-                if (field.pageType() == PageType.DETAIL) {
-                    mrhFieldCnt += 1;
-                }
-            }
+            long mrhFieldCnt = fields.stream()
+                    .filter(field -> field.pageType() == PageType.DETAIL)
+                    .count();
 
             Map<String, String> values = Map.of(
                     "c24", menuName,
-                    "c24MRHType", "" + mrhType,
-                    "c24MRHColumns", "" + mrhFieldCnt);
+                    "c24MRHType", mrhType,
+                    "c24MRHColumns", String.valueOf(mrhFieldCnt));
             try {
                 xmlMultiRecContent
                         .append(templateService.render(
-                                "xml\\xml-multirec-content.tpl",
+                                XML_MULTIREC_TEMPLATE,
                                 values,
                                 true));
             } catch (Exception e) {
@@ -123,36 +122,41 @@ public class XmlGenerator implements IFileGenerator {
     }
 
     private String buildXmlInvocationDetails(List<Field> fields, List<String> buttons, String menuName) {
+
         StringBuilder xmlInvocationContent = new StringBuilder();
 
         try {
+            String template = templateService.load(XML_INVOCATION_TEMPLATE);
 
-            String template = templateService.load("xml\\xml-invocationlist-content.tpl");
+            Field funcCodeField = fields.stream()
+                    .filter(field -> "funcCode".equals(field.id()))
+                    .findFirst()
+                    .orElse(null);
+
             for (String button : buttons) {
                 switch (button) {
                     case "GETDATA" -> {
-                        for (Field field : fields) {
-                            if (!field.id().equals("funcCode")) {
-                                continue;
-                            }
+                        if (funcCodeField == null) {
+                            continue;
+                        }
 
-                            for (Option option : field.options()) {
-                                Map<String, String> values = Map.of(
-                                        "c24", menuName,
-                                        "c24InvocationButton", button,
-                                        "c24FuncCode", option.toString(),
-                                        "c24InvocationButtonLower", button.toLowerCase());
+                        for (Option option : funcCodeField.options()) {
+                            Map<String, String> values = Map.of(
+                                    "c24", menuName,
+                                    "c24InvocationButton", button,
+                                    "c24FuncCode", option.toString(),
+                                    "c24InvocationButtonLower", button.toLowerCase());
 
-                                xmlInvocationContent.append(
-                                        templateService.render(
-                                                template,
-                                                values,
-                                                false));
-                            }
+                            xmlInvocationContent.append(
+                                    templateService.render(
+                                            template,
+                                            values,
+                                            false));
                         }
                     }
 
                     case "UPLOAD", "SUBMIT", "VALIDATE" -> {
+
                         Map<String, String> values = Map.of(
                                 "c24", menuName,
                                 "c24InvocationButton", button,
@@ -167,10 +171,12 @@ public class XmlGenerator implements IFileGenerator {
                     }
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             return "FAILURE";
         }
+
         return xmlInvocationContent.toString();
     }
 }

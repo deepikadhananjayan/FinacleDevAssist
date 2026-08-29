@@ -11,10 +11,10 @@ import com.sandy.fda.utils.FDALogger;
 
 public class PropGenerator implements IFileGenerator {
 
-    private static final String ENABLED_TEMPLATE = "{{fieldId}}_ENABLED:\"{{disabled}}\"";
+    private final String ENABLED_TEMPLATE = "{{fieldId}}_ENABLED:\"{{disabled}}\"";
+    private final String MANDATORY_TEMPLATE = "{{fieldId}}_MANDATORY:\"{{mandatoryFlag}}\"";
 
-    private static final String MANDATORY_TEMPLATE = "{{fieldId}}_MANDATORY:\"{{mandatoryFlag}}\"";
-
+    private final String PROPS_TEMPLATE = "props\\props-content.tpl";
     private final TemplateService templateService;
 
     public PropGenerator(TemplateService templateService) {
@@ -25,27 +25,27 @@ public class PropGenerator implements IFileGenerator {
     public String generate(Menu menuDetails) {
         FDALogger.info("Generating PROP File");
 
+        String propsContent = new String();
         List<Field> fields = menuDetails.fields();
         List<String> buttons = templateService.getButtons(menuDetails.menuType());
-        String propsContent = buildPropsContent(fields, buttons);
-        
+        String propFields = buildPropsContent(fields, buttons);
+
         Map<String, String> values = Map.of(
                 "c24", menuDetails.menuName().toLowerCase(),
-                "c24PropFields", propsContent);
-        
+                "c24PropFields", propFields);
+
         try {
             propsContent = templateService.render(
-                    "props\\props-content.tpl",
+                    PROPS_TEMPLATE,
                     values,
                     true);
-            templateService.beautify(propsContent, "JS");
+            propsContent = templateService.beautify(propsContent, "JS");
         } catch (Exception e) {
             e.printStackTrace();
             return "FAILURE";
         }
 
         System.out.println(propsContent);
-        // Write to File
         return "SUCCESS";
     }
 
@@ -54,54 +54,34 @@ public class PropGenerator implements IFileGenerator {
         StringBuilder propsContent = new StringBuilder();
 
         for (String button : buttons) {
-
-            String disabledContent = "\t" +
-                    ENABLED_TEMPLATE
-                            .replace("{{fieldId}}", button)
-                            .replace("{{disabled}}", "enabled")
-                    +
-                    ",";
-
-            String mandatoryContent = "\t" +
-                    MANDATORY_TEMPLATE
-                            .replace("{{fieldId}}", button)
-                            .replace("{{mandatoryFlag}}", "Y")
-                    +
-                    ",";
-
             propsContent
-                    .append(disabledContent)
+                    .append(ENABLED_TEMPLATE
+                            .replace("{{fieldId}}", button)
+                            .replace("{{disabled}}", "enabled"))
+                    .append(",")
                     .append(System.lineSeparator())
-                    .append(mandatoryContent)
+
+                    .append(MANDATORY_TEMPLATE
+                            .replace("{{fieldId}}", button)
+                            .replace("{{mandatoryFlag}}", "Y"))
+                    .append(",")
                     .append(System.lineSeparator());
         }
 
-        for (int i = 0; i < fields.size(); i++) {
-
-            Field field = fields.get(i);
-
+        for (Field field : fields) {
             String disabled = field.disabled() ? "disabled" : "enabled";
-
             String mandatory = field.mandatory() ? "Y" : "N";
 
-            String disabledContent = "\t" +
-                    ENABLED_TEMPLATE
-                            .replace("{{fieldId}}", field.id())
-                            .replace("{{disabled}}", disabled)
-                    +
-                    ",";
-
-            String mandatoryContent = "\t" +
-                    MANDATORY_TEMPLATE
-                            .replace("{{fieldId}}", field.id())
-                            .replace("{{mandatoryFlag}}", mandatory)
-                    +
-                    (i < fields.size() - 1 ? "," : "");
-
             propsContent
-                    .append(disabledContent)
+                    .append(ENABLED_TEMPLATE
+                            .replace("{{fieldId}}", field.id())
+                            .replace("{{disabled}}", disabled))
+                    .append(",")
                     .append(System.lineSeparator())
-                    .append(mandatoryContent)
+
+                    .append(MANDATORY_TEMPLATE
+                            .replace("{{fieldId}}", field.id())
+                            .replace("{{mandatoryFlag}}", mandatory))
                     .append(System.lineSeparator());
         }
 

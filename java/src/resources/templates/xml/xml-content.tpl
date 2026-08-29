@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <group_details>
-	<multi_tab_menu>N</multi_tab_menu>
-	<page_list>
-		<page_details>
-			<type_of_page>INITIAL</type_of_page>
-			<page_name>{{c24CritJspName}}</page_name>
-		</page_details>
-		<page_details>
-			<type_of_page>DETAILS</type_of_page>
-			<page_name>{{c24}}_det.jsp</page_name>
-			</page_details>
-		<page_details>
-			<type_of_page>RESULT</type_of_page>
-			<page_name>{{c24}}_res.jsp</page_name>
-		</page_details>
-	</page_list>
-	<invocation_list>
-	{{c24InvocationList}}
-	</invocation_list>
-	<field_list>
-	{{c24FieldList}}
-	</field_list>
-	<multirec_list>
-		{{c24MultiRecList}}
-	</multirec_list>
-	<tab_details_list>
-		{{c24MultiTabList}}
-	</tab_details_list>
+<multi_tab_menu>N</multi_tab_menu>
+<page_list>
+<page_details>
+<type_of_page>INITIAL</type_of_page>
+<page_name>{{c24CritJspName}}</page_name>
+</page_details>
+<page_details>
+<type_of_page>DETAILS</type_of_page>
+<page_name>{{c24}}_det.jsp</page_name>
+</page_details>
+<page_details>
+<type_of_page>RESULT</type_of_page>
+<page_name>{{c24}}_res.jsp</page_name>
+</page_details>
+</page_list>
+<invocation_list>
+{{c24InvocationList}}
+</invocation_list>
+<field_list>
+{{c24FieldList}}
+</field_list>
+<multirec_list>
+{{c24MultiRecList}}
+</multirec_list>
+<tab_details_list>
+{{c24MultiTabList}}
+</tab_details_list>
 </group_details>
