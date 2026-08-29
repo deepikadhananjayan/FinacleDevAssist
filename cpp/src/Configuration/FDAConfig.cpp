@@ -82,9 +82,6 @@ void FDAConfig::setPropertyPermissions(FDAProperty& prop)
 
     if (isC24EnvironmentKey(prop.key))
     {
-        // Individual sub-keys are edited/deleted only as a group via
-        // updateC24Environment/deleteC24Environment — flags below just
-        // drive the "Access" column display in the UI.
         prop.editable = true;
         prop.deletable = true;
         return;
@@ -134,31 +131,68 @@ bool FDAConfig::validateValue(const std::string& value)
     return true;
 }
 
+static std::wstring getUserFdaDir()
+{
+    PWSTR path = nullptr;
+    std::wstring result;
+
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Profile, 0, nullptr, &path)))
+    {
+        result = std::wstring(path) + L"\\FDA\\";
+        CoTaskMemFree(path);
+    }
+
+    return result;
+}
+
 // -------------------------------------------------------
 // load() — populates properties[]
 // -------------------------------------------------------
 bool FDAConfig::load()
 {
-    wchar_t dllPath[MAX_PATH] = { 0 };
-
-    if (!GetModuleFileNameW(FDAApplication::getModuleHandle(), dllPath, MAX_PATH))
+    std::wstring userFdaDir = getUserFdaDir();
+    if (userFdaDir.empty())
     {
-        Logger::error("[CONFIG] Unable to determine plugin location");
+        Logger::error("[CONFIG] Unable to determine user profile directory");
         return false;
     }
 
-    std::wstring pluginPath(dllPath);
-    size_t pos = pluginPath.find_last_of(L'\\');
-
-    if (pos == std::wstring::npos)
+    if (!CreateDirectoryW(userFdaDir.c_str(), nullptr))
     {
-        Logger::error("[CONFIG] Invalid plugin path");
-        return false;
+        DWORD err = GetLastError();
+        if (err != ERROR_ALREADY_EXISTS)
+        {
+            Logger::error("[CONFIG] Failed to create FDA directory, error : " + std::to_string(err));
+            return false;
+        }
     }
 
-    pluginPath = pluginPath.substr(0, pos + 1);
-    std::wstring propertyFile = pluginPath + L"fdaplugin.properties";
+    std::wstring propertyFile = userFdaDir + L"fdaplugin.properties";
     propertyFilePath = wideToString(propertyFile);
+
+    std::ifstream existingCheck(propertyFilePath);
+    bool alreadyExists = existingCheck.is_open();
+    existingCheck.close();
+
+    if (!alreadyExists)
+    {
+        std::string outputDir = wideToString(getDefaultDownloadsPath());
+
+        std::ofstream newFile(propertyFilePath, std::ios::binary);
+        if (newFile.is_open())
+        {
+            newFile << "java.port=52000\r\n";
+            newFile << "java.host=127.0.0.1\r\n";
+            newFile << "c24.output.dir=" << outputDir << "\r\n";
+            newFile.close();
+            Logger::info("[CONFIG] Created default properties file : " + propertyFilePath);
+        }
+        else
+        {
+            Logger::error("[CONFIG] Failed to create default properties file");
+            return false;
+        }
+    }
 
     Logger::info("[CONFIG] Loading : " + propertyFilePath);
 
@@ -179,16 +213,13 @@ bool FDAConfig::load()
 
     while (std::getline(file, line))
     {
-        // Skip empty lines
         if (line.empty())
             continue;
 
-        // Skip whitespace-only lines
         size_t firstChar = line.find_first_not_of(" \t\r\n");
         if (firstChar == std::string::npos)
             continue;
 
-        // Skip comments
         if (line[firstChar] == '#')
             continue;
 
@@ -199,13 +230,11 @@ bool FDAConfig::load()
         std::string key = line.substr(0, separator);
         std::string value = line.substr(separator + 1);
 
-        // Trim key
         size_t ks = key.find_first_not_of(" \t");
         size_t ke = key.find_last_not_of(" \t");
         if (ks != std::string::npos)
             key = key.substr(ks, ke - ks + 1);
 
-        // Trim value
         size_t vs = value.find_first_not_of(" \t");
         size_t ve = value.find_last_not_of(" \t\r\n");
         if (vs != std::string::npos)
@@ -213,20 +242,17 @@ bool FDAConfig::load()
         else
             value = "";
 
-        // Existing behavior — java.host / java.port
         if (key == "java.host")
             javaHost = value;
         else if (key == "java.port")
             javaPort = std::stoi(value);
 
-        // Existing behavior — fiEnvironments (names only)
         if (key.rfind("fi.", 0) == 0)
         {
             fiEnvironments.push_back(key);
             Logger::info("[CONFIG] FI Environment : " + key);
         }
 
-        // New — generic properties list
         FDAProperty prop;
         prop.key = key;
         prop.value = value;
@@ -235,40 +261,6 @@ bool FDAConfig::load()
     }
 
     file.close();
-
-    // Ensure c24.output.dir exists with a sensible default
-    bool hasOutputDir = false;
-    for (const FDAProperty& p : properties)
-    {
-        if (p.key == "c24.output.dir") { hasOutputDir = true; break; }
-    }
-
-    if (!hasOutputDir)
-    {
-        std::string defaultDir = wideToString(getDefaultDownloadsPath());
-        if (!defaultDir.empty())
-        {
-            std::ofstream appendFile(propertyFilePath, std::ios::app | std::ios::binary);
-            if (appendFile.is_open())
-            {
-                appendFile << "\r\nc24.output.dir=" << defaultDir;
-                appendFile.flush();
-                appendFile.close();
-
-                FDAProperty prop;
-                prop.key = "c24.output.dir";
-                prop.value = defaultDir;
-                setPropertyPermissions(prop);
-                properties.push_back(prop);
-
-                Logger::info("[CONFIG] Created default c24.output.dir : " + defaultDir);
-            }
-            else
-            {
-                Logger::error("[CONFIG] Failed to write default c24.output.dir");
-            }
-        }
-    }
 
     Logger::info("[CONFIG] Host : " + javaHost);
     Logger::info("[CONFIG] Port : " + std::to_string(javaPort));
