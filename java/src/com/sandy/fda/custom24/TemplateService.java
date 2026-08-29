@@ -7,11 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonObject;
 import com.sandy.fda.beautifier.Beautifier;
+import com.sandy.fda.models.custom24.Field;
+import com.sandy.fda.models.custom24.Option;
 import com.sandy.fda.models.custom24.enums.MenuType;
 
 public class TemplateService {
@@ -89,6 +92,30 @@ public class TemplateService {
 
             default -> Collections.emptyList();
         };
+    }
+
+    public Map<String, String> getFltCodes(List<Field> fields) {
+        Map<String, String> fltValues = new LinkedHashMap<>();
+
+        final String prefix = "FLTC24";
+        int fltNum = 7;
+
+        for (Field field : fields) {
+            fltValues.put(
+                    field.id(),
+                    prefix + String.format("%03d", fltNum));
+
+            for (Option option : field.options()) {
+                fltNum++;
+                fltValues.put(
+                        field.id() + "-" + option.label(),
+                        prefix + String.format("%03d", fltNum));
+            }
+
+            fltNum++;
+        }
+
+        return fltValues;
     }
 
     public String beautify(String content, String type) throws Exception {
