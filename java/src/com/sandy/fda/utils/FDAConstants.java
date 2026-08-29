@@ -28,16 +28,10 @@ public class FDAConstants {
     public static boolean load() {
         try {
             if (!loaded) {
-                String jarPath = FDAConstants.class
-                        .getProtectionDomain()
-                        .getCodeSource()
-                        .getLocation()
-                        .toURI()
-                        .getPath();
-
-                appDirectory = new File(jarPath).getParentFile();
+                String userHome = System.getProperty("user.home");
+                appDirectory = new File(userHome, "FDA");
                 propFile = new File(appDirectory, "fdaplugin.properties");
-                
+
                 appDirectory = new File("D:\\Santhosh\\Personal Learning\\Finacle Validator\\FDA\\java\\");
                 propFile = new File(appDirectory, "dev.fdaplugin.properties");
 
