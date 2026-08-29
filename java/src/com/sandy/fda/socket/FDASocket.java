@@ -122,7 +122,9 @@ public class FDASocket {
                             break;
 
                         case "EXECUTE_FI_REQUEST":
-                            if (FDAConstants.getOldPropFileSize() != FDAConstants.getPropertiesFileSize()) {
+                            if (!FDAConstants.getOldPropFileModified()
+                                    .equals(FDAConstants.getPropertiesFileModified())) {
+
                                 if (!FDAConstants.load()) {
                                     throw new IllegalStateException("Failed to Update Properties");
                                 }
@@ -131,10 +133,24 @@ public class FDASocket {
                             break;
 
                         case "GENERATE_CUSTOM_MENU":
+                            if (!FDAConstants.getOldPropFileModified()
+                                    .equals(FDAConstants.getPropertiesFileModified())) {
+
+                                if (!FDAConstants.load()) {
+                                    throw new IllegalStateException("Failed to Update Properties");
+                                }
+                            }
                             response = custom24Handler.generateCustomMenu(req);
                             break;
-                        
+
                         case "DEPLOY_CUSTOM_MENU":
+                            if (!FDAConstants.getOldPropFileModified()
+                                    .equals(FDAConstants.getPropertiesFileModified())) {
+
+                                if (!FDAConstants.load()) {
+                                    throw new IllegalStateException("Failed to Update Properties");
+                                }
+                            }
                             response = custom24Handler.deployCustomMenu(req);
                             break;
 
